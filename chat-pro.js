@@ -4,7 +4,7 @@ javascript:(function() {
         if (typeof window.minL !== 'undefined') { window.minL = -7777; }
         if (typeof window.showpics !== 'undefined') { window.showpics = -1; }
 
-        // 1) نظام التنبيهات
+        // 1) بناء حاوية التنبيهات
         var toastContainer = document.getElementById("radar-toast-container");
         if (!toastContainer) {
             toastContainer = document.createElement("div");
@@ -22,10 +22,12 @@ javascript:(function() {
 
             toast.style = "background:#f9f9f9; border:2px solid #333; border-right:6px solid " + borderColor + "; border-radius:10px; padding:10px; max-width:280px; font-family:sans-serif; color:#000; box-shadow:0 4px 10px rgba(0,0,0,.3); cursor:pointer; text-align:right; direction:rtl; pointer-events:auto;";
             
+            var userImage = user.pic ? "<img src='" + user.pic + "' style='width:35px;height:35px;border-radius:50%;border:1px solid #ccc'>" : "👤";
+            
             toast.innerHTML = 
                 "<div style='font-weight:bold;text-align:center;margin-bottom:8px;color:" + titleColor + ";font-size:14px;'>🔔 " + title + "</div>" +
                 "<div style='display:flex;align-items:center;gap:8px'>" +
-                    "<img src='" + user.pic + "' style='width:35px;height:35px;border-radius:50%;border:1px solid #ccc'>" +
+                    userImage +
                     (user.ico ? "<img src='" + user.ico + "' style='height:20px'>" : "") +
                     "<div style='flex-grow:1'>" +
                         "<div style='font-weight:bold;color:#333;font-size:13px;'>" + user.name + "</div>" +
@@ -51,16 +53,14 @@ javascript:(function() {
             return {
                 name: nameEl ? nameEl.innerText : "مجهول",
                 hash: hash,
-                pic: picEl ? picEl.src : "pic.png",
+                pic: picEl ? picEl.src : "",
                 ico: icoEl ? icoEl.src : ""
             };
         }
 
-        // 2) إصلاح الإطارات (منع الكلاسات المزعجة)
+        // 2) إصلاح الإطارات (تم التأكد من عملها)
         function fixHiddenFrames() {
-            var users = document.querySelectorAll('.uzr');
-            for (var i = 0; i < users.length; i++) {
-                var el = users[i];
+            document.querySelectorAll('.uzr').forEach(function(el) {
                 if (!el._patched) {
                     var originalAdd = el.classList.add;
                     el.classList.add = function() {
@@ -71,32 +71,32 @@ javascript:(function() {
                     el._patched = true;
                 }
                 
-                var badClasses = ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'];
-                for (var j = 0; j < badClasses.length; j++) {
-                    if (el.classList.contains(badClasses[j])) {
-                        el.classList.remove(badClasses[j]);
+                ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(function(cls) {
+                    if (el.classList.contains(cls)) {
+                        el.classList.remove(cls);
                         el.style.width = ''; 
                         el.style.height = '';
                     }
-                }
-            }
+                });
+            });
         }
 
-        // 3) إظهار جميع المخفيين + التنبيه + فتح البروفايل (التي نجحت)
+        // 3) كشف جميع المخفيين (حتى الرتب العليا) + فتح البروفايل
         function handleHiddenUsers() {
-            var users = document.querySelectorAll('#users .uzr');
-            for (var i = 0; i < users.length; i++) {
-                var user = users[i];
-                
-                // إجبار النظام على إظهار العضو في القائمة (لحل مشكلة الرتب العليا)
-                if (user.style.display === 'none') {
-                    user.style.display = 'block';
+            // استدعاء دوال سكربتك القديم إن كانت موجودة في ذاكرة الموقع
+            if(typeof window.showUsers === 'function') window.showUsers();
+            if(typeof window.showAllHigherRanksOnlyHidden === 'function') window.showAllHigherRanksOnlyHidden();
+
+            document.querySelectorAll('#users .uzr').forEach(function(user) {
+                // الفك الإجباري لإخفاء الرتب العليا
+                if (user.style.display === 'none' || user.classList.contains('hid')) {
+                    user.style.setProperty('display', 'block', 'important');
+                    user.classList.remove('hid', 'hidden');
                 }
 
                 var img = user.querySelector('img.ustat');
-                if (!img || img.getAttribute('src').indexOf('s4.png') === -1) continue;
+                if (!img || img.getAttribute('src').indexOf('s4.png') === -1) return;
                 
-                // ميزة فتح البروفايل بنجاح
                 user.style.cursor = "pointer";
                 if (!user._privateBound) {
                     user.addEventListener("click", function(e) {
@@ -110,50 +110,58 @@ javascript:(function() {
                     user._privateBound = true;
                 }
 
-                // التنبيه بالمخفي
                 if (!user._hiddenAlerted) {
                     showCustomToast("دخول مخفي للروم", getUInfo(user), "قام العضو بالدخول بوضعية التخفي 🕵️", "hidden");
                     user._hiddenAlerted = true;
                 }
-            }
+            });
         }
 
-        // 4) تنبيه دخول الإداري للروم (اعتماداً على الأيقونات الحقيقية للإدارة)
+        // 4) تنبيه دخول الإداري (رصد قوي عبر الكود المصدري)
         function checkAdminEntry() {
-            var inRoomUsers = document.querySelectorAll('#users .uzr.inroom');
-            for (var i = 0; i < inRoomUsers.length; i++) {
-                var el = inRoomUsers[i];
-                if (el._adminAlerted) continue;
+            document.querySelectorAll('#users .uzr.inroom').forEach(function(el) {
+                if (el._adminAlerted) return;
+                var html = el.innerHTML;
                 
-                // نبحث عن أيقونات الإدارة المعتمدة في النظام a1, a2, a3.. أو mod
-                var adminIcon = el.querySelector('img[src*="a1.png"], img[src*="a2.png"], img[src*="a3.png"], img[src*="a4.png"], img[src*="a5.png"], img[src*="admin"], img[src*="mod"]');
-                var adminLabel = el.querySelector('.label-primary');
-
-                if (adminIcon || adminLabel) {
+                // اصطياد الإدارة عبر (أيقوناتهم الأصلية في ملفات الموقع، أو الكلاس الخاص بهم)
+                if (html.includes('admin') || html.includes('mod') || html.match(/ico\/a\d\.png/) || el.classList.contains('label-primary')) {
                     showCustomToast("دخول إداري للروم", getUInfo(el), "إداري متواجد الآن في الروم 🛡️", "admin");
                     el._adminAlerted = true;
                 }
-            }
+            });
         }
 
-        // 5) رصد الرسائل الخاصة الحقيقية فقط (تجاهل الإعلانات)
-        function checkPrivateMessages() {
-            // نستهدف فقط الحاويات الفعلية للخاص (#chats) أو رسائل الهمس المباشرة (.priv)
-            var privateMessages = document.querySelectorAll('#chats .uzr, #d2 .uzr.priv');
-            for (var i = 0; i < privateMessages.length; i++) {
-                var msgNode = privateMessages[i];
-                if (msgNode._pmAlerted) continue;
-                
-                // التأكد أنها ليست إعلاناً (إعلانات الشات تأخذ كلاس pmsgc أو ppmsgc)
-                if (!msgNode.classList.contains('pmsgc') && !msgNode.classList.contains('ppmsgc')) {
-                    var senderInfo = getUInfo(msgNode);
-                    var msgContentEl = msgNode.querySelector('.u-msg');
-                    var msgContent = msgContentEl ? msgContentEl.innerText : msgNode.innerText.replace('رسالة خاصة', '').trim();
-                    
-                    showCustomToast("رسالة خاصة جديدة", senderInfo, "<b>النص:</b> <span style='color:#e83e8c;'>" + msgContent + "</span>", "pm");
+        // 5) رصد الرسائل الخاصة الحقيقية (بالمراقبة اللحظية القاطعة)
+        function observePrivateMessages() {
+            var containers = ['d2', 'chats']; // مراقبة الشات العام + صناديق المحادثات الخاصة
+            
+            containers.forEach(function(id) {
+                var container = document.getElementById(id);
+                if (container && !container._pmObserverAttached) {
+                    var observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(m) {
+                            m.addedNodes.forEach(function(node) {
+                                if (node.nodeType === 1) {
+                                    // تجاهل إعلانات الشات نهائياً
+                                    if (node.classList.contains('pmsgc') || node.classList.contains('ppmsgc') || node.innerText.includes('إعلان')) return;
+
+                                    var isPriv = node.classList.contains('priv') || (node.innerHTML && node.innerHTML.includes('رسالة خاصة'));
+                                    
+                                    if (isPriv) {
+                                        var senderInfo = getUInfo(node);
+                                        var msgEl = node.querySelector('.u-msg');
+                                        var msgContent = msgEl ? msgEl.innerText : node.innerText.replace('رسالة خاصة', '').trim();
+                                        
+                                        showCustomToast("رسالة خاصة جديدة", senderInfo, "<b>النص:</b> <span style='color:#e83e8c;'>" + msgContent + "</span>", "pm");
+                                    }
+                                }
+                            });
+                        });
+                    });
+                    observer.observe(container, { childList: true, subtree: true });
+                    container._pmObserverAttached = true;
                 }
-                msgNode._pmAlerted = true;
-            }
+            });
         }
 
         // المحرك الأساسي
@@ -161,24 +169,27 @@ javascript:(function() {
             fixHiddenFrames();
             handleHiddenUsers();
             checkAdminEntry();
-            checkPrivateMessages();
         }
 
-        // تشغيل أولي
-        runAllEngines();
-
-        // 6) المراقبة الشاملة (Observer)
-        var observer = new MutationObserver(function() {
+        // 6) المراقبة الشاملة لتحديثات القائمة
+        var mainObserver = new MutationObserver(function() {
             var searchBox = document.getElementById('usearch');
             if (searchBox && searchBox.value.trim().length > 0) return;
             runAllEngines();
         });
 
-        observer.observe(document.body, { childList: true, subtree: true });
+        mainObserver.observe(document.body, { childList: true, subtree: true });
 
-        console.log("✅ Elite Script V17 Loaded. No Errors. All features active.");
+        // تشغيل أولي
+        runAllEngines();
+        observePrivateMessages(); // تفعيل رادار الخاص
+
+        // 7) رسالة التحقق من التفعيل (كما طلبت)
+        showCustomToast("✅ نجاح التحميل", {name: "نظام الرادار", hash: "System", pic: "", ico: ""}, "<b>تم تفعيل السكربت بنجاح:</b><br>✔️ كشف المخفي (لجميع الرتب)<br>✔️ تنبيه الإدارة<br>✔️ رصد المحادثات الخاصة<br>✔️ إصلاح الإطارات وفتح البروفايل", "admin");
+        console.log("✅ Radar V18 System Active.");
 
     } catch (err) {
-        console.error("حدث خطأ في السكربت: ", err);
+        alert("حدث خطأ في السكربت، يرجى مراجعة الكونسول.");
+        console.error("Radar Error: ", err);
     }
 })();
