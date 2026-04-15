@@ -1,93 +1,139 @@
-javascript:(function() {
-    // 1. نظام التنبيهات المطور (Master Toast)
-    function showMasterToast(title, msg, user = {}) {
-        let container = document.getElementById("mobile-toast-container") || (function() {
-            let c = document.createElement("div");
-            c.id = "mobile-toast-container";
-            c.style = "position:fixed; top:15%; left:50%; transform:translateX(-50%); width:330px; z-index:1000000; pointer-events:none;";
-            document.body.appendChild(c);
-            return c;
-        })();
+javascript: (function() {
+    /* 1. إعداد حاوية التنبيهات إذا لم تكن موجودة */
+    if (!document.getElementById("mobile-toast-container")) {
+        var container = document.createElement("div");
+        container.id = "mobile-toast-container";
+        container.style = "position:fixed;top:10px;right:10px;width:300px;z-index:999999;pointer-events:none;";
+        document.body.appendChild(container);
+    }
 
-        let toast = document.createElement("div");
-        toast.style = "background:#fff; border:2px solid #333; border-radius:12px; padding:12px; margin-bottom:10px; direction:rtl; text-align:right; box-shadow:0 6px 20px rgba(0,0,0,0.5); pointer-events:auto; border-right: 8px solid #007bff;";
+    /* 2. دالة التنبيه المطورة الشاملة */
+    function showEnhancedToast(title, user, actionText, extraData = "") {
+        var toast = document.createElement("div");
+        toast.onclick = () => toast.remove();
+        toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:right;direction:rtl;pointer-events:auto;";
         
-        const siteIcon = location.origin + "/favicon.ico";
-        const displayImg = user.pic && user.pic !== "" ? user.pic : siteIcon;
+        /* استخراج البيانات المتاحة */
+        var name = user.name || "عضو";
+        var hash = user.hash || "بدون يوزر";
+        var pic = user.pic || "";
+        var icon = user.icon ? `<img src="${user.icon}" style="height:20px">` : "";
+        var country = user.country ? `<img src="${user.country}" style="height:15px">` : "";
 
         toast.innerHTML = `
-            <div style="font-weight:bold; text-align:center; border-bottom:1px solid #ccc; margin-bottom:8px; color:#007bff; font-size:15px;">📢 ${title}</div>
-            <div style="display:flex; align-items:center; gap:10px">
-                <img src="${displayImg}" style="width:45px; height:45px; border-radius:50%; border:1px solid #333; background:#fff">
+            <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 ${title}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <img src="${pic}" style="width:35px;height:35px;border-radius:50%;border:1px solid #ccc">
                 <div style="flex-grow:1">
-                    <div style="font-weight:bold; color:#c00; font-size:14px;">${user.name || 'النظام'}</div>
-                    <div style="font-size:10px; color:#555;">${user.hash || ''}</div>
+                    <div style="font-weight:bold;font-size:13px">${name} ${icon} ${country}</div>
+                    <div style="font-size:11px;color:gray">${hash}</div>
                 </div>
             </div>
-            <div style="margin-top:10px; padding:10px; background:#f1f1f1; border-radius:8px; font-size:13px; color:#000; line-height:1.4; border:1px solid #ddd;">
-                ${msg}
+            <div style="padding:5px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold;font-size:12px;">
+                ${actionText}
             </div>
+            ${extraData ? `<div style="margin-top:5px;font-size:11px;color:#c00;border-top:1px solid #ccc;padding-top:3px">${extraData}</div>` : ""}
         `;
-        container.appendChild(toast);
-        setTimeout(() => { if(toast) toast.remove(); }, 12000);
+        document.getElementById("mobile-toast-container").appendChild(toast);
+        setTimeout(() => toast.remove(), 10000);
     }
 
-    // 2. محرك مراقبة الرسائل الخاصة (سحب المحتوى)
-    const privateObserver = new MutationObserver((mutations) => {
-        mutations.forEach(m => {
-            m.addedNodes.forEach(node => {
-                if (node.nodeType === 1) {
-                    // التحقق من كونه عنصر رسالة (غالباً بكلاس msg أو داخل d2)
-                    const isPrivate = node.classList.contains('priv') || node.innerHTML.includes('label-warning') || node.innerText.includes('رسالة خاصة');
-                    
-                    if (isPrivate) {
-                        // استخراج اسم المرسل
-                        const sender = node.querySelector('.unme, .u-name')?.innerText || "مجهول";
-                        // استخراج نص الرسالة بالكامل
-                        const messageText = node.innerText.replace("رسالة خاصة", "").trim();
-                        // استخراج الصورة إذا وجدت
-                        const senderPic = node.querySelector('img.u-pic, img.avatar')?.src || "";
+    /* 3. دالة استخراج بيانات العضو من عنصر DOM */
+    function getUserData(el) {
+        return {
+            name: el.querySelector('.u-name')?.innerText || el.innerText.split('\n')[0],
+            hash: [...el.classList].find(c => c.startsWith('uid'))?.slice(3) || "---",
+            pic: el.querySelector('.u-pic')?.src || "",
+            icon: el.querySelector('.u-icon')?.src || "",
+            country: el.querySelector('.u-flg')?.src || ""
+        };
+    }
 
-                        // عرض التنبيه مع محتوى الرسالة
-                        showMasterToast("✉️ كشف محادثة خاصة", messageText, { name: sender, pic: senderPic });
-                        
-                        // تسجيل في الكونسول للتوثيق
-                        console.log(`%c [خاص] من: ${sender} | النص: ${messageText}`, "color: white; background: red; font-weight: bold;");
-                    }
+    /* 4. الإضافات الجديدة (المراقبة الشاملة) */
+    function runEnhancedMonitoring() {
+        /* أ- رصد دخول المخفيين والاداريين في الروم وقائمة الأسماء */
+        document.querySelectorAll('.uzr').forEach(el => {
+            var userData = getUserData(el);
+            var imgStatus = el.querySelector('img.ustat')?.getAttribute('src') || "";
+            
+            // رصد المخفي (s4.png)
+            if (imgStatus.includes('s4.png') && !el._monitoredHidden) {
+                showEnhancedToast("تنبيه مخفي", userData, "دخل الشات/الروم كمخفي");
+                el._monitoredHidden = true;
+                
+                // تطوير ميزة فتح البروفايل للمخفي (enablePrivateChatOnS4)
+                el.style.cursor = "pointer";
+                if (!el._profileBound) {
+                    el.addEventListener("click", function(e) {
+                        e.stopPropagation();
+                        if (userData.hash && typeof openw === "function") {
+                            openw(userData.hash); // تعديل لفتح البروفايل الكامل
+                            console.log("✅ تم فتح بروفايل المخفي:", userData.hash);
+                        }
+                    });
+                    el._profileBound = true;
+                }
+            }
+
+            // رصد الإداري (يعتمد على الأيقونة أو الرتبة)
+            if ((el.innerHTML.includes('star.png') || el.classList.contains('admin')) && !el._monitoredAdmin) {
+                showEnhancedToast("تنبيه إداري", userData, "الإداري متواجد الآن في الشات/الروم");
+                el._monitoredAdmin = true;
+            }
+        });
+
+        /* ب- رصد الخاص والطرد من منطقة الرسائل (d2) */
+        document.querySelectorAll('#d2 .msg').forEach(msgNode => {
+            if (msgNode._read) return;
+
+            var text = msgNode.innerText;
+            
+            // رصد رسائل الخاص
+            if (text.includes("رسالة خاصة")) {
+                var sender = getUserData(msgNode);
+                showEnhancedToast("رسالة خاصة", sender, "قام بإرسال رسالة خاصة", `نص الرسالة: ${text.split(':').slice(1).join(':')}`);
+            }
+
+            // رصد الطرد
+            if (text.includes("طرد") || text.includes("بواسطة")) {
+                showEnhancedToast("تنبيه طرد", {name: "نظام الشات"}, "حدثت حالة طرد في الشات", text);
+            }
+
+            msgNode._read = true;
+        });
+    }
+
+    /* 5. الوظائف الأصلية للسكربت (بدون تعديل - فقط دمج) */
+    function fixHiddenFrames() {
+        document.querySelectorAll('.uzr').forEach(el => {
+            if (!el._patched) {
+                const originalAdd = el.classList.add;
+                el.classList.add = function(...args) {
+                    if (args.includes('__rv_me')) return;
+                    originalAdd.apply(el, args);
+                };
+                el._patched = true;
+            }
+            if (el.classList.contains('__rv_me')) el.classList.remove('__rv_me');
+            
+            ['ahmed', 'mhmood', '__rv_me'].forEach(cls => {
+                if (el.classList.contains(cls)) {
+                    el.classList.remove(cls);
+                    el.style.width = el.style.height = '';
                 }
             });
-        });
-    });
-
-    // 3. المحرك الدوري (الهاشات والمخفيين)
-    function coreEngineV11() {
-        document.querySelectorAll('.uzr').forEach(el => {
-            const nameNode = el.querySelector('.u-name');
-            const hash = el.getAttribute('data-hash') || el.querySelector('.u-topic')?.innerText?.trim();
-
-            // حقن الهاش
-            if (hash && hash.length > 3 && !el._hashAdded) {
-                let span = document.createElement('span');
-                span.innerText = ` [${hash}]`;
-                span.style = "font-size:10px; color:blue; font-weight:bold; margin-right:5px; background:#d1ecf1; border-radius:3px;";
-                nameNode?.appendChild(span);
-                el._hashAdded = true;
-            }
-
-            // كشف المخفي (S4)
-            const statImg = el.querySelector('img.ustat');
-            if (statImg && statImg.src.includes('s4.png') && !el._seenHidden) {
-                showMasterToast("🕵️ مخفي متصل", "العضو متواجد الآن بشكل مخفي في القائمة", { name: nameNode?.innerText, hash: hash });
-                el._seenHidden = true;
-            }
+            if (el.classList.contains('custom-alaw')) el.classList.remove('custom-alaw');
         });
     }
 
-    // تشغيل المراقبين
-    const chatBody = document.getElementById('d2') || document.body;
-    privateObserver.observe(chatBody, { childList: true, subtree: true });
-    setInterval(coreEngineV11, 2000);
+    /* 6. تشغيل السكربت بشكل مستمر في الخلفية (Loop) */
+    setInterval(() => {
+        const searchBox = document.getElementById('usearch');
+        if (searchBox && searchBox.value.trim().length > 0) return;
 
-    console.log("✅ Elite V11: Private Spy Mode Active");
-    showMasterToast("تم التفعيل V11", "السكربت الآن يسحب محتوى الرسائل الخاصة ويراقب الهاشات.");
+        fixHiddenFrames();
+        runEnhancedMonitoring();
+    }, 2000); // يعمل كل ثانيتين لضمان عدم التعطل
+
+    console.log("✅ تم تفعيل السكربت المطور: مراقبة (المخفي، الإداري، الخاص، الطرد) + فتح بروفايل المخفي.");
 })();
