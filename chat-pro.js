@@ -1,9 +1,9 @@
 javascript: (function() {
-    // 1) نظام التنبيهات (تم دمجه مع كودك وتطويره ليدعم الأنواع المختلفة)
+    // 1) نظام التنبيهات 
     var toastContainer = document.getElementById("mobile-toast-container") || (function() {
         var c = document.createElement("div");
         c.id = "mobile-toast-container";
-        c.style = "position:fixed; top:10px; left:10px; z-index:9999999; display:flex; flex-direction:column; gap:10px; pointer-events:none;";
+        c.style = "position:fixed; top:15px; left:15px; z-index:9999999; display:flex; flex-direction:column; gap:10px; pointer-events:none;";
         document.body.appendChild(c);
         return c;
     })();
@@ -12,23 +12,22 @@ javascript: (function() {
         var toast = document.createElement("div");
         toast.onclick = () => toast.remove();
         
-        // تحديد لون التنبيه حسب نوعه
-        var borderColor = type === 'admin' ? '#007bff' : type === 'pm' ? '#e83e8c' : '#333';
+        var borderColor = type === 'admin' ? '#007bff' : type === 'pm' ? '#e83e8c' : '#555';
         var titleColor = type === 'admin' ? '#007bff' : type === 'pm' ? '#e83e8c' : '#000';
 
-        toast.style = `background:#f0f0f0; border:2px solid #333; border-right:6px solid ${borderColor}; border-radius:10px; padding:10px; max-width:280px; font-family:sans-serif; color:#000; box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:pointer; text-align:right; direction:rtl; pointer-events:auto;`;
+        toast.style = `background:#f9f9f9; border:2px solid #333; border-right:6px solid ${borderColor}; border-radius:10px; padding:10px; max-width:280px; font-family:sans-serif; color:#000; box-shadow:0 4px 10px rgba(0,0,0,.3); cursor:pointer; text-align:right; direction:rtl; pointer-events:auto;`;
         
         toast.innerHTML = `
-            <div style="font-weight:bold;text-align:center;margin-bottom:8px;color:${titleColor}">🔔 ${title}</div>
+            <div style="font-weight:bold;text-align:center;margin-bottom:8px;color:${titleColor};font-size:14px;">🔔 ${title}</div>
             <div style="display:flex;align-items:center;gap:8px">
-                <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
+                <img src="${user.pic}" style="width:35px;height:35px;border-radius:50%;border:1px solid #ccc">
                 ${user.ico ? `<img src="${user.ico}" style="height:20px">` : ""}
                 <div style="flex-grow:1">
-                    <div style="font-weight:bold">${user.name}</div>
-                    <div style="font-size:12px;color:gray">${user.hash}</div>
+                    <div style="font-weight:bold;color:#333;font-size:13px;">${user.name}</div>
+                    <div style="font-size:11px;color:gray">${user.hash}</div>
                 </div>
             </div>
-            <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold;word-break:break-word;">
+            <div style="margin-top:10px;padding:8px;background:#ebebeb;border-radius:6px;font-size:12px;color:#000;border:1px solid #ddd;word-break:break-word;">
                 ${extraMsg}
             </div>
         `;
@@ -36,7 +35,6 @@ javascript: (function() {
         setTimeout(() => { if(toast) toast.remove(); }, 12000);
     }
 
-    // دالة مساعدة لاستخراج بيانات العضو
     function getUInfo(el) {
         return {
             name: el.querySelector('.u-topic, .u-name')?.innerText || "مجهول",
@@ -46,10 +44,9 @@ javascript: (function() {
         };
     }
 
-    // 2) كودك الأساسي: إصلاح الإطارات والألوان ومنع الكلاسات المزعجة
+    // 2) إصلاح الإطارات (تم إزالة السطر المسبب للون الأزرق)
     function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
-            // منع إضافة الكلاس __rv_me نهائياً
             if (!el._patched) {
                 const originalAdd = el.classList.add;
                 el.classList.add = function(...args) {
@@ -58,30 +55,27 @@ javascript: (function() {
                 };
                 el._patched = true;
             }
-
-            // إزالة الكلاسات المزعجة
             ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(cls => {
                 if (el.classList.contains(cls)) {
                     el.classList.remove(cls);
-                    el.style.width = '';
-                    el.style.height = '';
+                    el.style.width = ''; el.style.height = '';
                 }
             });
-
-            // توحيد لون الاسم
-            const topic = el.querySelector('.u-topic');
-            if (topic) {
-                topic.style.color = '#0000ff';
-            }
         });
     }
 
-    // 3) كودك الأساسي: فتح الخاص/البروفايل لأصحاب s4 مع تنبيه المخفي
+    // 3) إظهار المخفيين (جميع الرتب) + فتح البروفايل + التنبيه
     function enablePrivateChatOnS4() {
         document.querySelectorAll('.uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
+            // إجبار النظام على إظهار المخفي في القائمة (حتى لو كان رتبة عليا)
+            user.style.display = 'block';
+            user.style.height = 'auto';
+            user.classList.remove('hid', 'hidden');
+
+            // ميزة فتح البروفايل (التي نجحت سابقاً)
             user.style.cursor = "pointer";
             if (!user._privateBound) {
                 user.addEventListener("click", function(e) {
@@ -89,63 +83,71 @@ javascript: (function() {
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
                     if (userId && typeof openw === "function") {
-                        openw(userId); // فتح البروفايل كما طلبت
+                        openw(userId);
                     }
                 });
                 user._privateBound = true;
             }
 
-            // التنبيه الخاص بالمخفي (كودك الأساسي)
+            // تنبيه المخفي
             if (!user._hiddenAlerted) {
-                showCustomToast("تنبيه مخفي", getUInfo(user), "دخل مخفي للروم", "hidden");
+                showCustomToast("دخول مخفي للروم", getUInfo(user), "قام العضو بالدخول بوضعية التخفي 🕵️", "hidden");
                 user._hiddenAlerted = true;
             }
         });
     }
 
-    // 4) الإضافة الجديدة: تنبيهات الإدارة والخاص
-    function monitorNewAlerts() {
-        // تنبيه دخول الإداري
+    // 4) تنبيه دخول الإداري للروم
+    function checkAdminEntry() {
         document.querySelectorAll('#users .uzr.inroom').forEach(el => {
             if (el._adminAlerted) return;
             const html = el.innerHTML;
-            // التحقق من الرتب الإدارية بناءً على الأيقونات والكلاسات
-            if (html.includes('admin') || html.includes('mod') || html.includes('label-primary') || html.includes('ico/a')) {
-                showCustomToast("دخول إداري", getUInfo(el), "قام الإداري بالدخول إلى الروم", "admin");
+            // التحقق من كلاسات الإدارة في سكريبتات الشات (مثل label-primary أو الأيقونات)
+            if (html.includes('ico/a') || html.includes('label-primary') || html.includes('admin') || html.includes('mod')) {
+                showCustomToast("دخول إداري للروم", getUInfo(el), "إداري متواجد الآن في الروم 🛡️", "admin");
                 el._adminAlerted = true;
-            }
-        });
-
-        // تنبيه الرسائل الخاصة
-        document.querySelectorAll('#d2 .uhtml, #d2 .uzr').forEach(el => {
-            if (el._pmAlerted) return;
-            const text = el.innerText;
-            if (text.includes("رسالة خاصة") || el.classList.contains('priv') || el.classList.contains('pmsgc')) {
-                let senderInfo = getUInfo(el);
-                let msgContent = el.querySelector('.u-msg')?.innerText || text.replace('رسالة خاصة','').trim();
-                
-                showCustomToast("رصد رسالة خاصة", senderInfo, `قام بإرسال رسالة بالخاص. النص: <br><span style="color:blue;">${msgContent}</span>`, "pm");
-                el._pmAlerted = true;
             }
         });
     }
 
-    // 5) المراقبة (Observer) - نفس كودك لتشغيل الوظائف
+    // 5) رصد الرسائل الخاصة (عبر مراقبة لحظية لمنطقة الرسائل d2)
+    const d2Container = document.getElementById('d2');
+    if (d2Container && !d2Container._pmObserverAttached) {
+        const pmObserver = new MutationObserver(mutations => {
+            mutations.forEach(m => {
+                m.addedNodes.forEach(node => {
+                    // إذا كان العنصر المضاف رسالة
+                    if (node.nodeType === 1 && (node.classList.contains('uhtml') || node.classList.contains('uzr'))) {
+                        const text = node.innerText;
+                        if (text.includes("رسالة خاصة") || node.classList.contains('priv') || node.classList.contains('pmsgc')) {
+                            let senderInfo = getUInfo(node);
+                            let msgContent = node.querySelector('.u-msg')?.innerText || text.replace('رسالة خاصة', '').trim();
+                            showCustomToast("رسالة خاصة جديدة", senderInfo, `<b>النص:</b> <span style="color:#e83e8c;">${msgContent}</span>`, "pm");
+                        }
+                    }
+                });
+            });
+        });
+        pmObserver.observe(d2Container, { childList: true });
+        d2Container._pmObserverAttached = true;
+    }
+
+    // 6) المراقبة الشاملة (لضمان عمل كل شيء عند تحديث الأسماء)
     const observer = new MutationObserver(() => {
         const searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
 
         fixHiddenFrames();
         enablePrivateChatOnS4();
-        monitorNewAlerts(); // الإضافة الجديدة
+        checkAdminEntry();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // تشغيل أولي
+    // تشغيل أولي فور حقن السكربت
     fixHiddenFrames();
     enablePrivateChatOnS4();
-    monitorNewAlerts();
+    checkAdminEntry();
 
-    console.log("✅ Script Loaded: Base Code + New Alerts (Admin & Private)");
+    console.log("✅ Script Loaded: Fixed Blue Names, Forced Hidden Users Visibility, Active Admin & PM Alerts.");
 })();
