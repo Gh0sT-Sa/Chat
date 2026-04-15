@@ -1,125 +1,105 @@
 javascript:(function() {
-    const _0xPowerKey = "Chat_Elite_V5";
-
-    // 1. نظام التنبيهات الكلاسيكي المحسن (إصلاح حاوية العرض)
-    function showClassicToast(title, msg, user = {}) {
-        // التأكد من وجود حاوية للتنبيهات أو إنشاؤها
-        let container = document.getElementById("mobile-toast-container");
-        if (!container) {
-            container = document.createElement("div");
-            container.id = "mobile-toast-container";
-            container.style = "position:fixed; top:10px; right:10px; width:300px; z-index:1000000; pointer-events:none;";
-            document.body.appendChild(container);
-        }
-
-        let toast = document.createElement("div");
-        toast.style = "background:#f9f9f9; border:2px solid #222; border-radius:12px; padding:12px; margin-bottom:10px; width:100%; font-family:sans-serif; color:#000; box-shadow:0 4px 12px rgba(0,0,0,0.3); cursor:pointer; text-align:right; direction:rtl; pointer-events:auto; position:relative; animation: slideIn 0.3s ease-out;";
-        
-        toast.onclick = () => toast.remove();
-        
-        toast.innerHTML = `
-            <div style="font-weight:bold; text-align:center; color:#d9534f; border-bottom:1px solid #ddd; margin-bottom:8px; padding-bottom:5px">🔔 ${title}</div>
-            <div style="display:flex; align-items:center; gap:10px">
-                <img src="${user.pic || 'https://ayemen.net/sico/ztPnGyrz7L.jpg'}" style="width:40px; height:40px; border-radius:50%; border:2px solid #ccc">
-                <div style="flex-grow:1">
-                    <div style="font-weight:bold; font-size:14px;">${user.name || 'نظام'}</div>
-                    <div style="font-size:11px; color:#555; background:#eee; padding:2px 5px; border-radius:4px; display:inline-block; margin-top:3px">ID/Hash: ${user.hash || 'غير متوفر'}</div>
-                </div>
-            </div>
-            <div style="margin-top:8px; padding:10px; background:#efefef; border-radius:8px; text-align:center; font-weight:bold; font-size:13px; color:#333; border:1px dashed #bbb">
-                ${msg}
-            </div>
-        `;
-        container.appendChild(toast);
-        setTimeout(() => { if(toast) toast.remove(); }, 10000);
+    // 1. استخراج الهاش والبيانات
+    function getUserHash(el) {
+        let topic = el.querySelector('.u-topic')?.innerText?.trim();
+        return topic || el.getAttribute('data-hash') || "Reading..";
     }
 
-    // 2. المحرك الأساسي (كشف المايك، المخفيين، والهاش)
-    function powerEngine() {
-        document.querySelectorAll('.uzr').forEach(el => {
-            const name = el.querySelector('.u-name')?.innerText || "مستخدم";
-            const pic = el.querySelector('.u-pic')?.src;
-            const hash = el.querySelector('.u-topic')?.innerText || "";
+    // 2. نظام التنبيهات المركزي (V8)
+    function showEliteToast(title, msg, user = {}) {
+        let container = document.getElementById("mobile-toast-container") || (function() {
+            let c = document.createElement("div");
+            c.id = "mobile-toast-container";
+            c.style = "position:fixed; top:20%; left:50%; transform:translateX(-50%); width:320px; z-index:1000000; pointer-events:none;";
+            document.body.appendChild(c);
+            return c;
+        })();
 
-            // أ) كشف المخفيين (S4)
+        let toast = document.createElement("div");
+        toast.style = "background:#f8f9fa; border:2px dashed #333; border-radius:12px; padding:12px; margin-bottom:10px; direction:rtl; text-align:right; box-shadow:0 5px 15px rgba(0,0,0,0.4); pointer-events:auto; border-right: 5px solid #c00;";
+        
+        const siteIcon = location.origin + "/favicon.ico";
+        const displayImg = user.pic && user.pic !== "" ? user.pic : siteIcon;
+
+        toast.innerHTML = `
+            <div style="font-weight:bold; text-align:center; border-bottom:1px solid #ddd; margin-bottom:8px; color:#333;">📢 ${title}</div>
+            <div style="display:flex; align-items:center; gap:10px">
+                <img src="${displayImg}" style="width:45px; height:45px; border-radius:50%; border:1px solid #333; background:#fff">
+                <div style="flex-grow:1">
+                    <div style="font-weight:bold; color:#c00; font-size:15px;">${user.name || 'نظام'}</div>
+                    <div style="font-size:10px; color:#007bff;">ID: ${user.hash || '..'}</div>
+                </div>
+            </div>
+            <div style="margin-top:10px; padding:8px; background:#eee; border-radius:8px; text-align:center; font-weight:bold; font-size:13px;">${msg}</div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 8000);
+    }
+
+    // 3. المحرك الشامل
+    function mainEngine() {
+        document.querySelectorAll('.uzr').forEach(el => {
+            const nameNode = el.querySelector('.u-name');
+            const name = nameNode?.innerText;
+            const hash = getUserHash(el);
+            const pic = el.querySelector('.u-pic')?.src;
+
+            // أ- كشف المخفيين (جميع الرتب)
             const statImg = el.querySelector('img.ustat');
-            if (statImg && (statImg.src.includes('s4.png') || el.classList.contains('offline'))) {
-                if (!el._notified) {
-                    showClassicToast("دخول مخفي", "متواجد الآن بشكل مخفي في الروم", {name, pic, hash});
-                    el._notified = true;
-                }
-                // جعل البروفايل يفتح بالكامل (openw)
-                el.style.cursor = "help";
-                if (!el._profileBound) {
-                    el.onclick = function(e) {
-                        e.preventDefault(); e.stopPropagation();
-                        const uid = [...el.classList].find(c => c.startsWith("uid"))?.slice(3);
-                        if(uid && typeof openw === 'function') openw(uid);
-                    };
-                    el._profileBound = true;
-                }
+            if (statImg && statImg.src.includes('s4.png') && !el._seenHidden) {
+                showEliteToast("تنبيه دخول مخفي", `قام ${name} بالدخول مخفي الآن`, {name, pic, hash});
+                el._seenHidden = true;
             }
 
-            // ب) كشف المايك (ربط مع ملف shbl3-m.js)
-            const micIcon = el.querySelector('.u-msg img[src*="mic.png"]') || el.querySelector('.ustat[src*="mic.png"]');
-            if (micIcon && !el._onMic) {
-                showClassicToast("المايك", "قام العضو بأخذ المايك الآن", {name, pic, hash});
+            // ب- كشف دخول الإدارة (أصحاب النجمة أو الكلاسات الإدارية)
+            if ((el.classList.contains('admin') || el.innerHTML.includes('star.png')) && !el._seenAdmin) {
+                showEliteToast("تنبيه إدارة", `دخل الإداري ${name} للروم`, {name, pic, hash});
+                el._seenAdmin = true;
+            }
+
+            // ج- كشف المايك (أخذ وترك)
+            const isOnMic = el.querySelector('img[src*="mic.png"]');
+            if (isOnMic && !el._onMic) {
+                showEliteToast("🎤 المايك", `${name} استلم المايك الآن`, {name, pic, hash});
                 el._onMic = true;
-            } else if (!micIcon && el._onMic) {
+            } else if (!isOnMic && el._onMic) {
+                showEliteToast("🎤 المايك", `${name} ترك المايك`, {name, pic, hash});
                 el._onMic = false;
             }
 
-            // ج) تنظيف الكلاسات التمويهية (ahmed, mhmood, etc)
-            ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(cls => {
-                if (el.classList.contains(cls)) {
-                    el.classList.remove(cls);
-                    el.style.cssText = "width:100% !important; height:auto !important; display:flex !important;";
-                }
-            });
-
-            // د) إظهار الهاش بجانب الاسم (للشفافية)
-            if (hash && !el._hashVisible) {
-                const nameNode = el.querySelector('.u-name');
-                if (nameNode) {
-                    const span = document.createElement('span');
-                    span.innerText = ` [${hash}]`;
-                    span.style = "font-size:9px; color:blue; font-weight:normal;";
-                    nameNode.appendChild(span);
-                    el._hashVisible = true;
-                }
+            // د- فتح البروفايل للمخفي وإظهار الهاش
+            if (hash && !el._hashDone) {
+                let hSpan = document.createElement('span');
+                hSpan.innerText = ` [${hash}]`;
+                hSpan.style = "font-size:9px; color:blue; font-weight:normal;";
+                nameNode.appendChild(hSpan);
+                el._hashDone = true;
+                
+                el.style.cursor = "help";
+                el.addEventListener('click', (e) => {
+                    e.stopImmediatePropagation();
+                    const uid = [...el.classList].find(c => c.startsWith("uid"))?.slice(3);
+                    if (uid && typeof openw === 'function') openw(uid);
+                }, true);
             }
         });
     }
 
-    // 3. مراقبة الطرد والتجاهل (عبر رصد التغيير في حاوية d2)
-    const logObserver = new MutationObserver((mutations) => {
-        mutations.forEach(mu => {
-            mu.addedNodes.forEach(node => {
+    // 4. مراقبة الخاص والتنبيهات العامة (MutationObserver)
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach(m => {
+            m.addedNodes.forEach(node => {
                 if (node.nodeType === 1) {
-                    const txt = node.innerText;
-                    if (txt.includes("طرد") || txt.includes("خروج") || txt.includes("بواسطة")) {
-                        showClassicToast("🚫 نظام الحماية", txt);
-                    }
-                    if (txt.includes("تجاهل") || txt.includes("ignore")) {
-                        showClassicToast("⚠️ تنبيه", "تم رصد محاولة تجاهل أو حظر خاص");
+                    const txt = node.innerText || "";
+                    if (txt.includes("رسالة خاصة") || node.classList.contains('priv')) {
+                        showEliteToast("✉️ خاص", "وصلتك رسالة خاصة جديدة أو تنبيه");
                     }
                 }
             });
         });
     });
+    observer.observe(document.body, { childList: true, subtree: true });
 
-    // استهداف حاوية الرسائل الصحيحة
-    const chatBox = document.getElementById('d2') || document.querySelector('.chat-history');
-    if (chatBox) logObserver.observe(chatBox, { childList: true, subtree: true });
-
-    // 4. تشغيل التحديثات
-    setInterval(powerEngine, 2000);
-    
-    // إضافة أنيميشن بسيط للتنبيهات
-    const style = document.createElement('style');
-    style.innerHTML = `@keyframes slideIn { from {transform: translateX(100%);} to {transform: translateX(0);} }`;
-    document.head.appendChild(style);
-
-    console.log("✅ Chat Pro Elite V5: Fully Operational");
-    showClassicToast("نظام السيطرة V5", "تم التفعيل بنجاح. السكربت يراقب المخفيين والهاشات والمايك الآن.");
+    setInterval(mainEngine, 2000);
+    showEliteToast("تم التشغيل", "السكربت V8 يعمل ويراقب المايك والإدارة والمخفيين");
 })();
