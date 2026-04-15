@@ -1,5 +1,5 @@
 javascript: (function() {
-    /* 1. إعداد حاوية التنبيهات إذا لم تكن موجودة */
+    /* 1. إعداد الحاوية */
     if (!document.getElementById("mobile-toast-container")) {
         var container = document.createElement("div");
         container.id = "mobile-toast-container";
@@ -7,16 +7,15 @@ javascript: (function() {
         document.body.appendChild(container);
     }
 
-    /* 2. دالة التنبيه المطورة الشاملة */
+    /* 2. دالة التنبيه (محسنة لضمان جلب الصور والبيانات) */
     function showEnhancedToast(title, user, actionText, extraData = "") {
         var toast = document.createElement("div");
         toast.onclick = () => toast.remove();
         toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:right;direction:rtl;pointer-events:auto;";
         
-        /* استخراج البيانات المتاحة */
         var name = user.name || "عضو";
-        var hash = user.hash || "بدون يوزر";
-        var pic = user.pic || "";
+        var hash = user.hash || "---";
+        var pic = user.pic || "https://via.placeholder.com/35"; // صورة افتراضية في حال الفشل
         var icon = user.icon ? `<img src="${user.icon}" style="height:20px">` : "";
         var country = user.country ? `<img src="${user.country}" style="height:15px">` : "";
 
@@ -26,84 +25,86 @@ javascript: (function() {
                 <img src="${pic}" style="width:35px;height:35px;border-radius:50%;border:1px solid #ccc">
                 <div style="flex-grow:1">
                     <div style="font-weight:bold;font-size:13px">${name} ${icon} ${country}</div>
-                    <div style="font-size:11px;color:gray">${hash}</div>
+                    <div style="font-size:11px;color:blue;font-weight:bold">${hash}</div>
                 </div>
             </div>
             <div style="padding:5px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold;font-size:12px;">
                 ${actionText}
             </div>
-            ${extraData ? `<div style="margin-top:5px;font-size:11px;color:#c00;border-top:1px solid #ccc;padding-top:3px">${extraData}</div>` : ""}
+            ${extraData ? `<div style="margin-top:5px;font-size:12px;color:#d00;border-top:1px dashed #999;padding-top:5px;word-break:break-all">💬 ${extraData}</div>` : ""}
         `;
         document.getElementById("mobile-toast-container").appendChild(toast);
-        setTimeout(() => toast.remove(), 10000);
+        setTimeout(() => { if(toast) toast.remove(); }, 12000);
     }
 
-    /* 3. دالة استخراج بيانات العضو من عنصر DOM */
-    function getUserData(el) {
+    /* 3. دالة استخراج البيانات (مطورة جداً لجلب الهاش والصورة) */
+    function getFullUserData(el) {
+        // محاولة جلب الهاش من كلاس الـ UID أو من التوبيك
+        var foundHash = [...el.classList].find(c => c.startsWith('uid'))?.slice(3) || 
+                        el.querySelector('.u-topic')?.innerText || "مخفي";
+        
         return {
             name: el.querySelector('.u-name')?.innerText || el.innerText.split('\n')[0],
-            hash: [...el.classList].find(c => c.startsWith('uid'))?.slice(3) || "---",
-            pic: el.querySelector('.u-pic')?.src || "",
-            icon: el.querySelector('.u-icon')?.src || "",
+            hash: foundHash,
+            pic: el.querySelector('.u-pic')?.src || el.querySelector('img.avatar')?.src || "",
+            icon: el.querySelector('.u-icon')?.src || el.querySelector('.ustat')?.src || "",
             country: el.querySelector('.u-flg')?.src || ""
         };
     }
 
-    /* 4. الإضافات الجديدة (المراقبة الشاملة) */
+    /* 4. المراقبة الشاملة (الماكينة التي لا تنام) */
     function runEnhancedMonitoring() {
-        /* أ- رصد دخول المخفيين والاداريين في الروم وقائمة الأسماء */
+        // أولاً: فحص قائمة المستخدمين (الأسماء والمخفيين)
         document.querySelectorAll('.uzr').forEach(el => {
-            var userData = getUserData(el);
-            var imgStatus = el.querySelector('img.ustat')?.getAttribute('src') || "";
+            var data = getFullUserData(el);
+            var html = el.innerHTML;
             
             // رصد المخفي (s4.png)
-            if (imgStatus.includes('s4.png') && !el._monitoredHidden) {
-                showEnhancedToast("تنبيه مخفي", userData, "دخل الشات/الروم كمخفي");
-                el._monitoredHidden = true;
+            if (html.includes('s4.png') && !el._monHidden) {
+                showEnhancedToast("تنبيه مخفي", data, "متواجد الآن (مخفي)");
+                el._monHidden = true;
                 
-                // تطوير ميزة فتح البروفايل للمخفي (enablePrivateChatOnS4)
+                // تطوير ميزة النقر لفتح البروفايل
                 el.style.cursor = "pointer";
                 if (!el._profileBound) {
                     el.addEventListener("click", function(e) {
                         e.stopPropagation();
-                        if (userData.hash && typeof openw === "function") {
-                            openw(userData.hash); // تعديل لفتح البروفايل الكامل
-                            console.log("✅ تم فتح بروفايل المخفي:", userData.hash);
-                        }
+                        var uid = [...el.classList].find(c => c.startsWith('uid'))?.slice(3);
+                        if (uid && typeof openw === "function") openw(uid);
                     });
                     el._profileBound = true;
                 }
             }
 
-            // رصد الإداري (يعتمد على الأيقونة أو الرتبة)
-            if ((el.innerHTML.includes('star.png') || el.classList.contains('admin')) && !el._monitoredAdmin) {
-                showEnhancedToast("تنبيه إداري", userData, "الإداري متواجد الآن في الشات/الروم");
-                el._monitoredAdmin = true;
+            // رصد الإداري (star.png أو كلاس admin)
+            if ((html.includes('star.png') || el.classList.contains('admin')) && !el._monAdmin) {
+                showEnhancedToast("تنبيه إداري", data, "دخل الإداري للروم/الشات");
+                el._monAdmin = true;
             }
         });
 
-        /* ب- رصد الخاص والطرد من منطقة الرسائل (d2) */
-        document.querySelectorAll('#d2 .msg').forEach(msgNode => {
-            if (msgNode._read) return;
+        // ثانياً: فحص منطقة الرسائل (الخاص والطرد)
+        document.querySelectorAll('#d2 .msg').forEach(msg => {
+            if (msg._processed) return;
+            var txt = msg.innerText;
 
-            var text = msgNode.innerText;
-            
-            // رصد رسائل الخاص
-            if (text.includes("رسالة خاصة")) {
-                var sender = getUserData(msgNode);
-                showEnhancedToast("رسالة خاصة", sender, "قام بإرسال رسالة خاصة", `نص الرسالة: ${text.split(':').slice(1).join(':')}`);
+            // رصد الخاص وسحب النص
+            if (txt.includes("رسالة خاصة")) {
+                var senderData = getFullUserData(msg);
+                var content = txt.split("رسالة خاصة")[1] || "محتوى مخفي";
+                showEnhancedToast("رسالة خاصة", senderData, "أرسل لك رسالة خاصة", content);
             }
 
             // رصد الطرد
-            if (text.includes("طرد") || text.includes("بواسطة")) {
-                showEnhancedToast("تنبيه طرد", {name: "نظام الشات"}, "حدثت حالة طرد في الشات", text);
+            if (txt.includes("طرد") || txt.includes("بواسطة")) {
+                showEnhancedToast("تنبيه طرد", {name: "النظام"}, "تم رصد حالة طرد", txt);
             }
 
-            msgNode._read = true;
+            msg._processed = true;
         });
     }
 
-    /* 5. الوظائف الأصلية للسكربت (بدون تعديل - فقط دمج) */
+    /* 5. الوظائف الأصلية (دمج بدون تعديل) */
     function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
             if (!el._patched) {
@@ -115,7 +116,6 @@ javascript: (function() {
                 el._patched = true;
             }
             if (el.classList.contains('__rv_me')) el.classList.remove('__rv_me');
-            
             ['ahmed', 'mhmood', '__rv_me'].forEach(cls => {
                 if (el.classList.contains(cls)) {
                     el.classList.remove(cls);
@@ -126,14 +126,11 @@ javascript: (function() {
         });
     }
 
-    /* 6. تشغيل السكربت بشكل مستمر في الخلفية (Loop) */
+    /* 6. التشغيل المستمر (Interval) */
     setInterval(() => {
-        const searchBox = document.getElementById('usearch');
-        if (searchBox && searchBox.value.trim().length > 0) return;
-
         fixHiddenFrames();
         runEnhancedMonitoring();
-    }, 2000); // يعمل كل ثانيتين لضمان عدم التعطل
+    }, 2000);
 
-    console.log("✅ تم تفعيل السكربت المطور: مراقبة (المخفي، الإداري، الخاص، الطرد) + فتح بروفايل المخفي.");
+    console.log("🚀 Elite Spy Script Active - Monitoring: Hidden, Admin, Private, Kicks.");
 })();
