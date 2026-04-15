@@ -1,8 +1,13 @@
 javascript:(function() {
     try {
-        // إجبار النظام على كشف الرتب العليا المخفية (تجاوز حماية الشات)
-        if (typeof window.minL !== 'undefined') { window.minL = -7777; }
-        if (typeof window.showpics !== 'undefined') { window.showpics = -1; }
+        // إجبار النظام على كشف الرتب العليا المخفية
+        window.minL = -7777;
+        window.minR = -7777;
+        window.showpics = -1;
+
+        // ذاكرة لحفظ من تم التنبيه عنهم (لمنع التقطع أو التكرار)
+        const alertedHidden = new Set();
+        const alertedAdmin = new Set();
 
         // 1) بناء حاوية التنبيهات
         var toastContainer = document.getElementById("radar-toast-container");
@@ -46,19 +51,17 @@ javascript:(function() {
             var nameEl = el.querySelector('.u-topic, .u-name');
             var picEl = el.querySelector('.u-pic');
             var icoEl = el.querySelector('.u-ico');
-            
             var uidMatch = [...el.classList].find(function(c) { return c.startsWith('uid'); });
-            var hash = uidMatch ? uidMatch.slice(3) : "غير معروف";
-
+            
             return {
                 name: nameEl ? nameEl.innerText : "مجهول",
-                hash: hash,
+                hash: uidMatch ? uidMatch.slice(3) : "غير معروف",
                 pic: picEl ? picEl.src : "",
                 ico: icoEl ? icoEl.src : ""
             };
         }
 
-        // 2) إصلاح الإطارات (تم التأكد من عملها)
+        // 2) إصلاح الإطارات
         function fixHiddenFrames() {
             document.querySelectorAll('.uzr').forEach(function(el) {
                 if (!el._patched) {
@@ -70,25 +73,20 @@ javascript:(function() {
                     };
                     el._patched = true;
                 }
-                
                 ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(function(cls) {
-                    if (el.classList.contains(cls)) {
-                        el.classList.remove(cls);
-                        el.style.width = ''; 
-                        el.style.height = '';
-                    }
+                    if (el.classList.contains(cls)) { el.classList.remove(cls); el.style.width = ''; el.style.height = ''; }
                 });
             });
         }
 
-        // 3) كشف جميع المخفيين (حتى الرتب العليا) + فتح البروفايل
+        // 3) كشف المخفيين (بالاعتماد على دوال سكربتك الأصلي لإظهار الرتب العليا)
         function handleHiddenUsers() {
-            // استدعاء دوال سكربتك القديم إن كانت موجودة في ذاكرة الموقع
-            if(typeof window.showUsers === 'function') window.showUsers();
-            if(typeof window.showAllHigherRanksOnlyHidden === 'function') window.showAllHigherRanksOnlyHidden();
+            // محاولة تشغيل دوال موقع الشات المسؤولة عن كشف الرتب العليا
+            try { if(typeof showUsers === 'function') showUsers(); } catch(e){}
+            try { if(typeof showAllHigherRanksOnlyHidden === 'function') showAllHigherRanksOnlyHidden(); } catch(e){}
 
             document.querySelectorAll('#users .uzr').forEach(function(user) {
-                // الفك الإجباري لإخفاء الرتب العليا
+                // فرض الظهور بالقوة في القائمة
                 if (user.style.display === 'none' || user.classList.contains('hid')) {
                     user.style.setProperty('display', 'block', 'important');
                     user.classList.remove('hid', 'hidden');
@@ -97,74 +95,80 @@ javascript:(function() {
                 var img = user.querySelector('img.ustat');
                 if (!img || img.getAttribute('src').indexOf('s4.png') === -1) return;
                 
+                var uInfo = getUInfo(user);
+
+                // فتح البروفايل
                 user.style.cursor = "pointer";
                 if (!user._privateBound) {
                     user.addEventListener("click", function(e) {
                         e.stopImmediatePropagation();
-                        var uidClass = [...this.classList].find(function(c) { return c.startsWith("uid"); });
-                        var userId = uidClass ? uidClass.slice(3) : null;
-                        if (userId && typeof openw === "function") {
-                            openw(userId);
+                        if (uInfo.hash && uInfo.hash !== "غير معروف" && typeof openw === "function") {
+                            openw(uInfo.hash);
                         }
                     });
                     user._privateBound = true;
                 }
 
-                if (!user._hiddenAlerted) {
-                    showCustomToast("دخول مخفي للروم", getUInfo(user), "قام العضو بالدخول بوضعية التخفي 🕵️", "hidden");
-                    user._hiddenAlerted = true;
+                // تنبيه المخفي باستخدام الذاكرة لمنع التقطع
+                if (!alertedHidden.has(uInfo.hash)) {
+                    showCustomToast("دخول مخفي للروم", uInfo, "قام العضو بالدخول بوضعية التخفي 🕵️", "hidden");
+                    alertedHidden.add(uInfo.hash);
                 }
             });
         }
 
-        // 4) تنبيه دخول الإداري (رصد قوي عبر الكود المصدري)
+        // 4) تنبيه دخول الإداري (رصد عن طريق أيقونات الشات الأصلية)
         function checkAdminEntry() {
-            document.querySelectorAll('#users .uzr.inroom').forEach(function(el) {
-                if (el._adminAlerted) return;
-                var html = el.innerHTML;
-                
-                // اصطياد الإدارة عبر (أيقوناتهم الأصلية في ملفات الموقع، أو الكلاس الخاص بهم)
-                if (html.includes('admin') || html.includes('mod') || html.match(/ico\/a\d\.png/) || el.classList.contains('label-primary')) {
-                    showCustomToast("دخول إداري للروم", getUInfo(el), "إداري متواجد الآن في الروم 🛡️", "admin");
-                    el._adminAlerted = true;
+            document.querySelectorAll('#users .uzr').forEach(function(el) {
+                var uInfo = getUInfo(el);
+                if (alertedAdmin.has(uInfo.hash)) return;
+
+                var icoSrc = uInfo.ico.toLowerCase();
+                var isManager = icoSrc.includes('a1.png') || icoSrc.includes('a2.png') || 
+                                icoSrc.includes('a3.png') || icoSrc.includes('a4.png') || 
+                                icoSrc.includes('a5.png') || icoSrc.includes('admin') || 
+                                icoSrc.includes('mod') || el.classList.contains('label-primary');
+
+                if (isManager) {
+                    showCustomToast("دخول إداري للروم", uInfo, "إداري متواجد الآن في الروم 🛡️", "admin");
+                    alertedAdmin.add(uInfo.hash);
                 }
             });
         }
 
-        // 5) رصد الرسائل الخاصة الحقيقية (بالمراقبة اللحظية القاطعة)
+        // 5) الرصد الجذري للرسائل الخاصة (يصطاد المحادثة الفردية الفعلية)
         function observePrivateMessages() {
-            var containers = ['d2', 'chats']; // مراقبة الشات العام + صناديق المحادثات الخاصة
-            
-            containers.forEach(function(id) {
-                var container = document.getElementById(id);
-                if (container && !container._pmObserverAttached) {
-                    var observer = new MutationObserver(function(mutations) {
-                        mutations.forEach(function(m) {
-                            m.addedNodes.forEach(function(node) {
-                                if (node.nodeType === 1) {
-                                    // تجاهل إعلانات الشات نهائياً
-                                    if (node.classList.contains('pmsgc') || node.classList.contains('ppmsgc') || node.innerText.includes('إعلان')) return;
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(m) {
+                    m.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1 && node.classList && node.classList.contains('uzr')) {
+                            
+                            // 1. فلترة إعلانات الشات تماماً
+                            if (node.classList.contains('pmsgc') || node.classList.contains('ppmsgc') || (node.innerText && node.innerText.includes('إعلان'))) return;
 
-                                    var isPriv = node.classList.contains('priv') || (node.innerHTML && node.innerHTML.includes('رسالة خاصة'));
-                                    
-                                    if (isPriv) {
-                                        var senderInfo = getUInfo(node);
-                                        var msgEl = node.querySelector('.u-msg');
-                                        var msgContent = msgEl ? msgEl.innerText : node.innerText.replace('رسالة خاصة', '').trim();
-                                        
-                                        showCustomToast("رسالة خاصة جديدة", senderInfo, "<b>النص:</b> <span style='color:#e83e8c;'>" + msgContent + "</span>", "pm");
-                                    }
-                                }
-                            });
-                        });
+                            // 2. التحقق مما إذا كانت الرسالة داخل الخاص الفعلي (#chats) أو همس (.priv)
+                            var inChatsBox = node.closest && node.closest('#chats');
+                            var isWhisper = node.classList.contains('priv') || (node.innerText && node.innerText.includes('رسالة خاصة'));
+
+                            if (inChatsBox || isWhisper) {
+                                if (node._pmAlerted) return;
+                                node._pmAlerted = true;
+
+                                var senderInfo = getUInfo(node);
+                                var msgEl = node.querySelector('.u-msg');
+                                var msgText = msgEl ? msgEl.innerText : node.innerText.replace('رسالة خاصة', '').trim();
+
+                                showCustomToast("رسالة خاصة 💬", senderInfo, "<b style='color:#e83e8c'>" + msgText + "</b>", "pm");
+                            }
+                        }
                     });
-                    observer.observe(container, { childList: true, subtree: true });
-                    container._pmObserverAttached = true;
-                }
+                });
             });
+            // المراقبة تتم على كامل الموقع لعدم تفويت أي نافذة خاص تُفتح
+            observer.observe(document.body, { childList: true, subtree: true });
         }
 
-        // المحرك الأساسي
+        // تشغيل الوظائف
         function runAllEngines() {
             fixHiddenFrames();
             handleHiddenUsers();
@@ -180,16 +184,15 @@ javascript:(function() {
 
         mainObserver.observe(document.body, { childList: true, subtree: true });
 
-        // تشغيل أولي
+        // تفعيل أوّلي
         runAllEngines();
-        observePrivateMessages(); // تفعيل رادار الخاص
+        observePrivateMessages(); // تشغيل مراقب الخاص الجذري
 
-        // 7) رسالة التحقق من التفعيل (كما طلبت)
-        showCustomToast("✅ نجاح التحميل", {name: "نظام الرادار", hash: "System", pic: "", ico: ""}, "<b>تم تفعيل السكربت بنجاح:</b><br>✔️ كشف المخفي (لجميع الرتب)<br>✔️ تنبيه الإدارة<br>✔️ رصد المحادثات الخاصة<br>✔️ إصلاح الإطارات وفتح البروفايل", "admin");
-        console.log("✅ Radar V18 System Active.");
+        // 7) رسالة التحقق
+        showCustomToast("✅ نجاح التحميل", {name: "الرادار V19", hash: "System", pic: "", ico: ""}, "<b>تم التفعيل بنجاح:</b><br>✔️ كشف المخفي (لجميع الرتب)<br>✔️ تنبيه الإدارة<br>✔️ رصد المحادثات الخاصة الفردية<br>✔️ إصلاح الإطارات وفتح البروفايل", "admin");
 
     } catch (err) {
-        alert("حدث خطأ في السكربت، يرجى مراجعة الكونسول.");
-        console.error("Radar Error: ", err);
+        alert("حدث خطأ في تحميل الرادار.");
+        console.error(err);
     }
 })();
