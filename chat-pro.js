@@ -1,4 +1,135 @@
-javascript: (function() {
+javascript:(function() {
+    // 1. إعداد حاوية التنبيهات الاحترافية
+    var toastContainer = document.getElementById("mobile-toast-container") || (function() {
+        var c = document.createElement("div");
+        c.id = "mobile-toast-container";
+        c.style = "position:fixed; top:10px; right:10px; width:320px; z-index:999999; pointer-events:none; font-family:serif;";
+        document.body.appendChild(c);
+        return c;
+    })();
+
+    function showAdvancedToast(title, user, targetUser, extraMsg, type) {
+        var toast = document.createElement("div");
+        toast.style = "background:#fff; border:1px solid #333; border-radius:8px; padding:10px; margin-bottom:8px; direction:rtl; text-align:right; box-shadow:0 4px 15px rgba(0,0,0,0.3); pointer-events:auto; border-right:6px solid " + (type === 'admin' ? '#007bff' : type === 'private' ? '#e83e8c' : '#dc3545');
+        
+        var userHtml = `
+            <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #eee; padding-bottom:5px;">
+                <img src="${user.pic}" style="width:35px; height:35px; border-radius:50%; border:1px solid #ddd;">
+                <div>
+                    <div style="font-weight:bold; font-size:13px; color:#c00;">${user.name} <img src="${user.ico}" style="height:14px;"></div>
+                    <div style="font-size:10px; color:#666;">ID: ${user.hash} | ${user.co}</div>
+                </div>
+            </div>`;
+
+        var targetHtml = targetUser ? `
+            <div style="display:flex; align-items:center; gap:8px; margin-top:5px; border-top:1px dashed #ccc; padding-top:5px;">
+                <span style="font-size:11px; color:#777;">إلى:</span>
+                <img src="${targetUser.pic}" style="width:25px; height:25px; border-radius:50%;">
+                <span style="font-size:12px; font-weight:bold;">${targetUser.name}</span>
+            </div>` : "";
+
+        toast.innerHTML = `
+            <div style="font-weight:bold; text-align:center; color:#333; font-size:12px; margin-bottom:5px;">📢 ${title}</div>
+            ${userHtml}
+            ${targetHtml}
+            <div style="margin-top:8px; padding:6px; background:#f9f9f9; border-radius:4px; font-size:12px; color:#000; border:1px solid #eee;">
+                ${extraMsg}
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        setTimeout(() => { if(toast) toast.remove(); }, 12000);
+    }
+
+    // 2. استخراج بيانات العضو من عنصر الـ DOM
+    function getUserData(el) {
+        if(!el) return null;
+        return {
+            name: el.querySelector('.u-topic')?.innerText || "مجهول",
+            hash: [...el.classList].find(c => c.startsWith('uid'))?.slice(3) || "Reading..",
+            pic: el.querySelector('.u-pic')?.src || "pic.png",
+            ico: el.querySelector('.u-ico')?.src || "",
+            co: el.querySelector('.co.ico')?.getAttribute('title') || el.querySelector('.co.ico')?.src || "غير معروف"
+        };
+    }
+
+    // 3. المحرك الأساسي للمراقبة
+    function runRadarV14() {
+        document.querySelectorAll('.uzr').forEach(el => {
+            if (el._processed) return;
+            
+            var html = el.innerHTML;
+            var user = getUserData(el);
+
+            // أ- رصد دخول المخفي (s4.png)
+            if (html.includes('s4.png')) {
+                showAdvancedToast("دخول مخفي للروم", user, null, "دخل العضو أعلاه الشات/الروم بوضعية التخفي 🕵️", "hidden");
+                
+                // تطوير ميزة فتح البروفايل بدلاً من الخاص
+                el.style.cursor = "pointer";
+                el.onclick = function(e) {
+                    e.stopImmediatePropagation();
+                    if (user.hash && typeof openw === 'function') openw(user.hash); 
+                };
+            }
+
+            // ب- رصد دخول إداري (بناءً على الأيقونات المعروفة للادارة في 12chat)
+            if (html.includes('ico/a') || html.includes('label-primary')) {
+                 showAdvancedToast("تنبيه دخول إداري", user, null, "قام الإداري أعلاه بالدخول الآن للدردشة 🛡️", "admin");
+            }
+
+            el._processed = true;
+        });
+
+        // ج- رصد الخاص والطرد من منطقة الرسائل (d2)
+        document.querySelectorAll('#d2 .uhtml, #d2 .uzr').forEach(msgEl => {
+            if (msgEl._msgChecked) return;
+            var text = msgEl.innerText;
+
+            // رصد الخاص
+            if (text.includes("رسالة خاصة")) {
+                var sender = getUserData(msgEl);
+                var message = msgEl.querySelector('.u-msg')?.innerText || "نص مخفي";
+                showAdvancedToast("رصد رسالة خاصة", sender, null, `قام بإرسال خاص: ${message}`, "private");
+            }
+
+            // رصد الطرد
+            if (text.includes("طرد") || text.includes("باند")) {
+                var admin = getUserData(msgEl);
+                showAdvancedToast("رصد حالة طرد", admin, null, text, "kick");
+            }
+
+            msgEl._msgChecked = true;
+        });
+    }
+
+    // 4. إصلاح الإطارات وإخفاء الزخارف المزعجة (كما في طلبك السابق)
+    function cleanUI() {
+        document.querySelectorAll('.uzr').forEach(el => {
+            ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(cls => {
+                if (el.classList.contains(cls)) {
+                    el.classList.remove(cls);
+                    el.style.width = ''; el.style.height = '';
+                }
+            });
+        });
+    }
+
+    // 5. تفعيل المراقبة المستمرة (MutationObserver)
+    const observer = new MutationObserver(() => {
+        runRadarV14();
+        cleanUI();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    // تشغيل احتياطي كل ثانيتين لضمان عدم التعطل
+    setInterval(() => {
+        runRadarV14();
+        cleanUI();
+    }, 2000);
+
+    console.log("✅ Radar V14 Active: Monitoring Hidden, Admins, Private & Kicks.");
+})();javascript: (function() {
     /* 1. إعداد الحاوية */
     if (!document.getElementById("mobile-toast-container")) {
         var container = document.createElement("div");
