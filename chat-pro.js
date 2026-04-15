@@ -1,86 +1,151 @@
-javascript:(function() {
-    // 1. نظام التنبيهات (Toast)
-    var radarContainer = document.getElementById("radar-alerts") || (function() {
+javascript: (function() {
+    // 1) نظام التنبيهات (تم دمجه مع كودك وتطويره ليدعم الأنواع المختلفة)
+    var toastContainer = document.getElementById("mobile-toast-container") || (function() {
         var c = document.createElement("div");
-        c.id = "radar-alerts";
-        c.style = "position:fixed; top:10%; left:50%; transform:translateX(-50%); width:300px; z-index:1000000; pointer-events:none; font-family:arial;";
+        c.id = "mobile-toast-container";
+        c.style = "position:fixed; top:10px; left:10px; z-index:9999999; display:flex; flex-direction:column; gap:10px; pointer-events:none;";
         document.body.appendChild(c);
         return c;
     })();
 
-    function sendRadarAlert(title, content, color = "#333") {
-        var a = document.createElement("div");
-        a.style = `background:#fff; border-right:6px solid ${color}; border-radius:5px; padding:10px; margin-bottom:5px; box-shadow:0 4px 10px rgba(0,0,0,0.3); direction:rtl; text-align:right; pointer-events:auto; font-size:13px;`;
-        a.onclick = () => a.remove();
-        a.innerHTML = `<b style="color:${color}">${title}</b><br>${content}`;
-        radarContainer.appendChild(a);
-        setTimeout(() => { if(a) a.remove(); }, 10000);
+    function showCustomToast(title, user, extraMsg, type) {
+        var toast = document.createElement("div");
+        toast.onclick = () => toast.remove();
+        
+        // تحديد لون التنبيه حسب نوعه
+        var borderColor = type === 'admin' ? '#007bff' : type === 'pm' ? '#e83e8c' : '#333';
+        var titleColor = type === 'admin' ? '#007bff' : type === 'pm' ? '#e83e8c' : '#000';
+
+        toast.style = `background:#f0f0f0; border:2px solid #333; border-right:6px solid ${borderColor}; border-radius:10px; padding:10px; max-width:280px; font-family:sans-serif; color:#000; box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:pointer; text-align:right; direction:rtl; pointer-events:auto;`;
+        
+        toast.innerHTML = `
+            <div style="font-weight:bold;text-align:center;margin-bottom:8px;color:${titleColor}">🔔 ${title}</div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
+                ${user.ico ? `<img src="${user.ico}" style="height:20px">` : ""}
+                <div style="flex-grow:1">
+                    <div style="font-weight:bold">${user.name}</div>
+                    <div style="font-size:12px;color:gray">${user.hash}</div>
+                </div>
+            </div>
+            <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold;word-break:break-word;">
+                ${extraMsg}
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        setTimeout(() => { if(toast) toast.remove(); }, 12000);
     }
 
-    // 2. المحرك الرئيسي (يراقب القائمة d2 والأسماء)
-    function startRadarEngine() {
-        // --- أ: كشف المخفيين وإصلاح الإطارات (المزايا القديمة) ---
+    // دالة مساعدة لاستخراج بيانات العضو
+    function getUInfo(el) {
+        return {
+            name: el.querySelector('.u-topic, .u-name')?.innerText || "مجهول",
+            hash: [...el.classList].find(c => c.startsWith('uid'))?.slice(3) || "غير معروف",
+            pic: el.querySelector('.u-pic')?.src || "pic.png",
+            ico: el.querySelector('.u-ico')?.src || ""
+        };
+    }
+
+    // 2) كودك الأساسي: إصلاح الإطارات والألوان ومنع الكلاسات المزعجة
+    function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
-            const img = el.querySelector('img.ustat');
-            const isHidden = img && img.src.includes('s4.png');
-            
-            // إصلاح الألوان والإطارات (ahmed, mhmood, الخ)
-            ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(c => {
-                if (el.classList.contains(c)) {
-                    el.classList.remove(c);
-                    el.style.width = el.style.height = '';
+            // منع إضافة الكلاس __rv_me نهائياً
+            if (!el._patched) {
+                const originalAdd = el.classList.add;
+                el.classList.add = function(...args) {
+                    if (args.includes('__rv_me')) return;
+                    originalAdd.apply(this, args);
+                };
+                el._patched = true;
+            }
+
+            // إزالة الكلاسات المزعجة
+            ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(cls => {
+                if (el.classList.contains(cls)) {
+                    el.classList.remove(cls);
+                    el.style.width = '';
+                    el.style.height = '';
                 }
             });
 
-            // تفعيل فتح البروفايل للمخفي
-            if (isHidden && !el._s4Active) {
-                el.style.cursor = "pointer";
-                el.title = "اضغط لفتح البروفايل (كاشف)";
-                el.addEventListener('click', function(e) {
-                    e.stopImmediatePropagation();
-                    var uid = [...el.classList].find(c => c.startsWith('uid'))?.slice(3);
-                    if(uid && typeof openw === 'function') openw(uid);
-                });
-                if(!el._notified) {
-                    var name = el.querySelector('.u-topic')?.innerText || "عضو";
-                    sendRadarAlert("🕵️ دخول مخفي", `قام <b>${name}</b> بالدخول كمخفي.`, "#555");
-                    el._notified = true;
-                }
-                el._s4Active = true;
+            // توحيد لون الاسم
+            const topic = el.querySelector('.u-topic');
+            if (topic) {
+                topic.style.color = '#0000ff';
             }
-
-            // --- ب: تنبيه دخول الإداري للروم ---
-            if (el.classList.contains('inroom') && !el._adminNotified) {
-                const isAdmin = el.querySelector('.u-ico[src*="admin"], .u-ico[src*="mod"], .label-primary');
-                if (isAdmin) {
-                    var name = el.querySelector('.u-topic')?.innerText || "إداري";
-                    sendRadarAlert("🛡️ دخول إداري", `الإداري <b>${name}</b> متواجد الآن في الروم.`, "#007bff");
-                    el._adminNotified = true;
-                }
-            }
-        });
-
-        // --- ج: رصد رسائل الخاص (المرسل، المستقبل، النص) ---
-        document.querySelectorAll('#d2 .uhtml').forEach(msg => {
-            if (msg._checked) return;
-            if (msg.innerText.includes("رسالة خاصة")) {
-                var sender = msg.querySelector('.u-topic')?.innerText || "مرسل مجهول";
-                var uid = [...msg.classList].find(c => c.startsWith('uid'))?.slice(3) || "---";
-                var text = msg.querySelector('.u-msg')?.innerText || "النص مخفي";
-                
-                sendRadarAlert("✉️ رصد خاص", `<b>من:</b> ${sender} (${uid})<br><b>النص:</b> ${text}`, "#e83e8c");
-            }
-            msg._checked = true;
         });
     }
 
-    // 3. المراقبة اللحظية (Observer)
-    const observer = new MutationObserver(startRadarEngine);
+    // 3) كودك الأساسي: فتح الخاص/البروفايل لأصحاب s4 مع تنبيه المخفي
+    function enablePrivateChatOnS4() {
+        document.querySelectorAll('.uzr').forEach(user => {
+            const img = user.querySelector('img.ustat');
+            if (!img || !img.getAttribute('src').includes('s4.png')) return;
+            
+            user.style.cursor = "pointer";
+            if (!user._privateBound) {
+                user.addEventListener("click", function(e) {
+                    e.stopImmediatePropagation();
+                    const uidClass = [...user.classList].find(c => c.startsWith("uid"));
+                    const userId = uidClass ? uidClass.slice(3) : null;
+                    if (userId && typeof openw === "function") {
+                        openw(userId); // فتح البروفايل كما طلبت
+                    }
+                });
+                user._privateBound = true;
+            }
+
+            // التنبيه الخاص بالمخفي (كودك الأساسي)
+            if (!user._hiddenAlerted) {
+                showCustomToast("تنبيه مخفي", getUInfo(user), "دخل مخفي للروم", "hidden");
+                user._hiddenAlerted = true;
+            }
+        });
+    }
+
+    // 4) الإضافة الجديدة: تنبيهات الإدارة والخاص
+    function monitorNewAlerts() {
+        // تنبيه دخول الإداري
+        document.querySelectorAll('#users .uzr.inroom').forEach(el => {
+            if (el._adminAlerted) return;
+            const html = el.innerHTML;
+            // التحقق من الرتب الإدارية بناءً على الأيقونات والكلاسات
+            if (html.includes('admin') || html.includes('mod') || html.includes('label-primary') || html.includes('ico/a')) {
+                showCustomToast("دخول إداري", getUInfo(el), "قام الإداري بالدخول إلى الروم", "admin");
+                el._adminAlerted = true;
+            }
+        });
+
+        // تنبيه الرسائل الخاصة
+        document.querySelectorAll('#d2 .uhtml, #d2 .uzr').forEach(el => {
+            if (el._pmAlerted) return;
+            const text = el.innerText;
+            if (text.includes("رسالة خاصة") || el.classList.contains('priv') || el.classList.contains('pmsgc')) {
+                let senderInfo = getUInfo(el);
+                let msgContent = el.querySelector('.u-msg')?.innerText || text.replace('رسالة خاصة','').trim();
+                
+                showCustomToast("رصد رسالة خاصة", senderInfo, `قام بإرسال رسالة بالخاص. النص: <br><span style="color:blue;">${msgContent}</span>`, "pm");
+                el._pmAlerted = true;
+            }
+        });
+    }
+
+    // 5) المراقبة (Observer) - نفس كودك لتشغيل الوظائف
+    const observer = new MutationObserver(() => {
+        const searchBox = document.getElementById('usearch');
+        if (searchBox && searchBox.value.trim().length > 0) return;
+
+        fixHiddenFrames();
+        enablePrivateChatOnS4();
+        monitorNewAlerts(); // الإضافة الجديدة
+    });
+
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // تشغيل احتياطي كل ثانية
-    setInterval(startRadarEngine, 1000);
+    // تشغيل أولي
+    fixHiddenFrames();
+    enablePrivateChatOnS4();
+    monitorNewAlerts();
 
-    console.log("🚀 Elite Radar V16 Loaded Successfully");
-    sendRadarAlert("الرادار المطور V16", "تم تفعيل كافة المزايا (المخفي، الإدارة، والخاص).", "#28a745");
+    console.log("✅ Script Loaded: Base Code + New Alerts (Admin & Private)");
 })();
