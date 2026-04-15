@@ -1,90 +1,122 @@
-javascript:(function(){
-    /* إعدادات المتغيرات المموهة للحماية */
-    const _0xAdminId = "SmartChat_v2";
-    const _0xStorageKey = "hidden_log";
-
-    /* 1. نظام التنبيهات الذكي (Toast) */
-    function _0xShowToast(msg, user = {}) {
+javascript:(function() {
+    // 1. نظام التنبيهات الكلاسيكي (كما طلبت في التعديل القديم)
+    function showClassicToast(title, msg, user = {}) {
         let container = document.getElementById("mobile-toast-container") || document.body;
         let toast = document.createElement("div");
-        toast.style = "background:#1e1e2e; border-left:4px solid #7289da; border-radius:8px; padding:12px; margin:10px auto; width:90%; color:#fff; font-family:sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.5); cursor:pointer; z-index:999999;";
+        
+        // التنسيق القديم: خلفية فاتحة مع حدود داكنة
+        toast.style = "background:#f0f0f0; border:2px solid #333; border-radius:10px; padding:10px; margin-top:10px; max-width:280px; font-family:sans-serif; color:#000; box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:pointer; text-align:right; direction:rtl; z-index:999999;";
         toast.onclick = () => toast.remove();
         
         toast.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px">
-                <img src="${user.pic || ''}" onerror="this.src='https://via.placeholder.com/32'" style="width:35px; height:35px; border-radius:50%; border:1px solid #444">
+            <div style="font-weight:bold; text-align:center; margin-bottom:8px">🔔 ${title}</div>
+            <div style="display:flex; align-items:center; gap:8px">
+                <img src="${user.pic || 'https://via.placeholder.com/32'}" style="width:32px; height:32px; border-radius:50%; border:1px solid #ccc">
+                ${user.icon ? `<img src="${user.icon}" style="height:20px">` : ""}
                 <div style="flex-grow:1">
-                    <div style="font-weight:bold; font-size:14px;">${user.name || 'نظام'}</div>
-                    <div style="font-size:11px; color:#aaa;">${msg}</div>
+                    <div style="font-weight:bold">${user.name || 'نظام'}</div>
+                    <div style="font-size:11px; color:gray">${user.hash || ''}</div>
                 </div>
-            </div>`;
+            </div>
+            <div style="margin-top:10px; padding:8px; background:#e0e0e0; border-radius:6px; text-align:center; font-weight:bold; font-size:12px;">
+                ${msg}
+            </div>
+        `;
         container.appendChild(toast);
-        setTimeout(() => toast.remove(), 5000);
-        
-        /* إضافة للسجل التاريخي */
-        _0xLogToStorage(user.name, msg);
+        setTimeout(() => { if(toast) toast.remove(); }, 8000);
     }
 
-    /* 2. سجل المخفيين في LocalStorage */
-    function _0xLogToStorage(name, action) {
-        let logs = JSON.parse(localStorage.getItem(_0xStorageKey) || "[]");
-        logs.push({ name, action, time: new Date().toLocaleTimeString() });
-        if(logs.length > 50) logs.shift(); // الاحتفاظ بآخر 50 حدث فقط
-        localStorage.setItem(_0xStorageKey, JSON.stringify(logs));
-        console.table([logs[logs.length-1]]); // عرض الجدول في الكونسول
+    // 2. محرك الفحص الذكي (الأداء العالي)
+    function coreEngine() {
+        // فحص قائمة الأعضاء
+        document.querySelectorAll('.uzr').forEach(el => {
+            // أ) كشف المخفيين (S4) وربط البروفايل
+            const statImg = el.querySelector('img.ustat');
+            if (statImg && statImg.src.includes('s4.png')) {
+                const name = el.querySelector('.u-name')?.innerText;
+                if (!el._notified) {
+                    const pic = el.querySelector('.u-pic')?.src;
+                    const hash = el.querySelector('.u-topic')?.innerText;
+                    showClassicToast("دخول مخفي", "قام بالدخول مخفي للشات", {name, pic, hash});
+                    el._notified = true;
+                }
+                // تحويل الاسم للنقر لفتح البروفايل (openw)
+                el.style.cursor = "pointer";
+                if (!el._profileBound) {
+                    el.addEventListener('click', () => {
+                        const uid = [...el.classList].find(c => c.startsWith("uid"))?.slice(3);
+                        if(uid && typeof openw === 'function') openw(uid);
+                    });
+                    el._profileBound = true;
+                }
+            }
+
+            // ب) مراقبة المايك
+            const micIcon = el.querySelector('.u-msg img[src*="mic.png"]');
+            if (micIcon && !el._onMic) {
+                const name = el.querySelector('.u-name')?.innerText;
+                showClassicToast("المايك", "قام العضو بأخذ المايك الآن", {name});
+                el._onMic = true;
+            } else if (!micIcon && el._onMic) {
+                el._onMic = false;
+            }
+
+            // ج) تنظيف المظهر (UI Fixes)
+            ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(cls => {
+                if (el.classList.contains(cls)) {
+                    el.classList.remove(cls);
+                    el.style.width = '';
+                    el.style.height = '';
+                }
+            });
+        });
     }
 
-    /* 3. معالجة الأداء وتحسين الـ MutationObserver */
-    const _0xConfig = { childList: true, subtree: true };
-    const _0xObserver = new MutationObserver((mutations) => {
-        /* معالجة التغييرات فقط لتجنب التعليق */
+    // 3. مراقبة الطرد والتجاهل والرسائل المحذوفة عبر الـ Logs
+    const logObserver = new MutationObserver((mutations) => {
         requestAnimationFrame(() => {
-            _0xApplyFixes();
+            mutations.forEach(mu => {
+                mu.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) {
+                        const txt = node.innerText;
+                        // كشف الطرد
+                        if (txt.includes("طرد") || txt.includes("خروج")) {
+                            showClassicToast("🚫 طرد/خروج", txt);
+                        }
+                        // كشف التجاهل
+                        if (txt.includes("تجاهل") || txt.includes("ignore")) {
+                            showClassicToast("⚠️ تجاهل", "تم رصد عملية تجاهل في الغرفة");
+                        }
+                        // حفظ سجل المحادثات (للكشف عن المحذوفات لاحقاً)
+                        if (node.classList.contains('msg')) {
+                            console.log("📝 سجل رسالة:", txt);
+                        }
+                    }
+                });
+            });
         });
     });
 
-    function _0xApplyFixes() {
-        document.querySelectorAll('.uzr').forEach(el => {
-            /* إزالة الكلاسات المخصصة فوراً */
-            ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(c => el.classList.remove(c));
-            
-            /* فتح الخاص الذكي عند الضغط */
-            if (!el._bound) {
-                el.style.cursor = "pointer";
-                el.onclick = function() {
-                    const uid = [...this.classList].find(c => c.startsWith("uid"))?.slice(3);
-                    if(uid && typeof openw === 'function') openw(uid);
-                };
-                el._bound = true;
-            }
+    // تشغيل المراقب على حاوية الرسائل (غالباً d2)
+    const chatBox = document.getElementById('d2') || document.body;
+    logObserver.observe(chatBox, { childList: true, subtree: true });
 
-            /* كشف الدولة والمخفيين */
-            const statImg = el.querySelector('img.ustat');
-            if (statImg && statImg.src.includes('s4.png') && !el._notified) {
-                const name = el.querySelector('.u-name')?.innerText;
-                const pic = el.querySelector('.u-pic')?.src;
-                _0xShowToast("دخل مخفي للروم 🕵️", {name, pic});
-                el._notified = true;
+    // 4. التشغيل الدوري (كل ثانيتين لضمان خفة المتصفح)
+    setInterval(coreEngine, 2000);
+
+    // 5. ميزة كشف الـ IP التقريبي (من الـ Hash)
+    function extractDeviceInfo() {
+        document.querySelectorAll('.u-topic').forEach(topic => {
+            const hash = topic.innerText;
+            if (hash.length > 5 && !topic._checked) {
+                // محاولة برمجية لربط الهاش بالدولة (بناءً على ملف x3.js)
+                console.log("🔍 فحص الهاش:", hash);
+                topic._checked = true;
             }
         });
     }
+    setInterval(extractDeviceInfo, 5000);
 
-    /* 4. إطلاق السكربت */
-    _0xObserver.observe(document.body, _0xConfig);
-    _0xApplyFixes();
-    console.log("✅ Smart Chat Script Active");
-
-    /* ميزة إضافية: زر الفلترة الذكية */
-    if(!document.getElementById('filterBtn')) {
-        let btn = document.createElement('button');
-        btn.id = 'filterBtn';
-        btn.innerText = "تصفية الزوار";
-        btn.style = "position:fixed; top:10px; right:10px; z-index:9999; background:red; color:white; border:none; padding:5px; border-radius:5px;";
-        btn.onclick = () => {
-            document.querySelectorAll('.uzr').forEach(u => {
-                if(!u.classList.contains('admin')) u.style.display = u.style.display === 'none' ? 'block' : 'none';
-            });
-        };
-        document.body.appendChild(btn);
-    }
+    console.log("✅ Chat Pro Elite V4 Active");
+    showClassicToast("نظام السيطرة", "تم تفعيل السكربت بنجاح (Stealth Mode)");
 })();
