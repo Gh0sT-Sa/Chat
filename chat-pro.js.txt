@@ -188,26 +188,36 @@ javascript: (function() {
         }
     }
     
-    // 6) إضافة فتح  البروفايل عند الضغط على أصحاب المخفيين s4.png
+// 6) إضافة فتح البروفايل مع أولوية قصوى لتخطي حماية الرتب العليا
     function enablePrivateChatOnS4() {
         document.querySelectorAll('#users .uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
+            // 1. جعل العنصر قابلاً للتفاعل حتى لو كان عليه حماية أو إطارات
+            user.style.setProperty('pointer-events', 'auto', 'important');
             user.style.cursor = "pointer";
+
             if (!user._privateBound) {
+                // 2. استخدام "Capture Mode" (عبر إضافة true في نهاية المستمع) 
+                // لضمان أن السكريبت الخاص بك يلتقط الضغطة قبل سكريبتات الموقع
                 user.addEventListener("click", function(e) {
-                    e.stopPropagation();
+                    // 3. منع الموقع من تعطيل الضغطة أو تنفيذ أوامره الخاصة (مثل حظر فتح البروفايل)
+                    e.stopImmediatePropagation(); 
+                    e.preventDefault();
+
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
+
                     if (userId && typeof uprof === "function") {
                         uprof(userId);
-                        console.log("✅ تم فتح البروفايل للمستخدم:", userId);
+                        console.log("✅ أولوية قصوى: تم فتح بروفايل الرتبة العليا:", userId);
                     } else {
-                        console.warn("❌ لم يتم العثور على uid أو الدالة غير موجودة");
+                        console.warn("❌ فشل العثور على المعرف أو دالة uprof غير متوفرة حالياً");
                     }
-                });
-                user._privateBound = true; // منع تكرار الحدث
+                }, true); // الـ 'true' هنا هي السر لتخطي حماية الرتب
+                
+                user._privateBound = true;
             }
         });
     }
