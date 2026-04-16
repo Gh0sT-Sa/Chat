@@ -1,6 +1,6 @@
-javascript: (function() {
-    console.log("Gh0sT-KSA V4.3 | النسخة الخداعية (Shape-Shifter)");
+console.log("Gh0sT-KSA V4.5 | النسخة المدمرة (اختراق دالة upro)");
 
+(function() {
     // 1) منع تكرار التشغيل والتنبيهات المزدوجة
     if (window.ghostKsaActive) {
         window.ghostObserver && window.ghostObserver.disconnect();
@@ -10,7 +10,7 @@ javascript: (function() {
 
     // 2) إجبار المتصفح على مسح الألوان الجانبية
     const fixStyle = document.createElement('style');
-    fixStyle.innerHTML = `.uzr { border-right: none !important; border-left: none !important; }`;
+    fixStyle.innerHTML = `.uzr { border-right: none !important; border-left: none !important; } .uzr img[src*="s4.png"] { cursor: crosshair !important; }`;
     document.head.appendChild(fixStyle);
 
     // 3) إظهار الأزرار وإزالة الإطارات
@@ -36,7 +36,6 @@ javascript: (function() {
         document.body.appendChild(container);
     }
     
-    // إظهار التنبيه
     function showAlert(user) {
         const toast = document.createElement("div");
         toast.onclick = () => toast.remove(); 
@@ -83,7 +82,7 @@ javascript: (function() {
         });
     }
     
-    // 6) إصلاح الإطارات والألوان
+    // 6) إصلاح الإطارات
     function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
             const style = window.getComputedStyle(el);
@@ -112,7 +111,7 @@ javascript: (function() {
         document.querySelectorAll(".uzr.custom-alaw").forEach(el => el.classList.remove("custom-alaw"));
     }
     
-    // 7) فحص المخفيين (تم القضاء على التكرار النهائي)
+    // 7) فحص المخفيين بدون تكرار
     function checkHiddenUsers() {
         document.querySelectorAll('.uzr.inroom').forEach(userEl => {
             const statusImg = userEl.querySelector('img.ustat');
@@ -141,37 +140,52 @@ javascript: (function() {
             }
         });
     }
-    
-    // 8) الحيلة الخداعية لفتح بروفايلات الرتب العليا (Shape-Shifter)
+
+    // 8) قناص دالة UPRO الشامل (استخراج الكود السري)
     function enableProfileCaptureOnS4() {
         document.querySelectorAll('.uzr').forEach(user => {
-            if (!user._shapeShifterBound) {
-                // بمجرد ضغط الماوس، نقوم بخداع السكريبت الأصلي وتغيير رتبة المستخدم لمستخدم عادي
-                user.addEventListener('mousedown', function(e) {
-                    const img = user.querySelector('img.ustat');
-                    if (img && img.src.includes('s4.png')) {
-                        user.setAttribute('data-temp-s4', 'true');
-                        img.src = 'imgs/s1.png'; // الصورة العادية التي يسمح الموقع بفتح بروفايلها
-                    }
-                }, true);
+            const img = user.querySelector('img.ustat');
+            if (!img || !img.src.includes('s4.png')) return;
+            
+            user.style.setProperty('pointer-events', 'auto', 'important');
+            user.style.cursor = "crosshair"; // مؤشر القنص
 
-                // بعد النقر، نعيد صورته كمخفي بسرعة
-                window.addEventListener('mouseup', function(e) {
-                    setTimeout(() => {
-                        if (user.hasAttribute('data-temp-s4')) {
-                            const img = user.querySelector('img.ustat');
-                            if (img) img.src = 'imgs/s4.png';
-                            user.removeAttribute('data-temp-s4');
+            if (!user._uproSniperBound) {
+                user.addEventListener("click", function(e) {
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    // استخراج الآي دي المشفر من صورة العضو!
+                    const picEl = user.querySelector('.u-pic');
+                    let targetId = null;
+                    
+                    if (picEl) {
+                        const onclickStr = picEl.getAttribute('onclick');
+                        if (onclickStr) {
+                            // صيد النص الموجود بين علامات التنصيص داخل upro('...')
+                            const match = onclickStr.match(/upro\(['"]([^'"]+)['"]\)/);
+                            if (match && match[1]) {
+                                targetId = match[1];
+                            }
                         }
-                    }, 50); // تأخير بسيط لضمان تنفيذ أمر البروفايل أولاً
-                }, true);
+                    }
 
-                user._shapeShifterBound = true;
+                    // إطلاق الدالة الحقيقية
+                    if (targetId && typeof upro === 'function') {
+                        upro(targetId);
+                        console.log("🎯 Gh0sT-KSA: تم اختراق الحماية وفتح البروفايل للمعرف المشفر:", targetId);
+                    } else {
+                        console.log("❌ السكريبت لم يعثر على المعرف المشفر أو الدالة upro مغلقة.");
+                    }
+                }, true); // استيلاء كامل على النقرة
+                
+                user._uproSniperBound = true;
             }
         });
     }
     
-    // 9) مراقبة DOM الشاملة
+    // 9) مراقبة DOM
     window.ghostObserver = new MutationObserver(() => {
         const searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
@@ -192,10 +206,9 @@ javascript: (function() {
     checkHiddenUsers();
     enableProfileCaptureOnS4();
     
-    // رسالة تأكيد بدون أي أخطاء
     const startupToast = document.createElement("div");
-    startupToast.style = "background:#2ecc71; color:white; padding:10px 20px; border-radius:5px; position:fixed; bottom:20px; right:20px; z-index:100000; font-family:sans-serif; font-weight:bold;";
-    startupToast.innerText = "🚀 تم تشغيل سكريبت الخداع بنجاح!";
+    startupToast.style = "background:#8e44ad; color:white; padding:12px 25px; border-radius:8px; position:fixed; bottom:20px; right:20px; z-index:100000; font-family:sans-serif; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.3); border-right: 4px solid #fff; direction: rtl;";
+    startupToast.innerHTML = "🎯 <b>Gh0sT-KSA V4.5</b><br>تم ربط قناص البروفايلات بدالة Upro السرية!";
     document.body.appendChild(startupToast);
     setTimeout(() => startupToast.remove(), 4000);
 
