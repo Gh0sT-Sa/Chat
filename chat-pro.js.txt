@@ -1,7 +1,7 @@
-console.log("Gh0sT-KSA V4.0 | النسخة الأساسية المطورة (إصلاح الرتب والتكرار)");
+console.log("Gh0sT-KSA V4.1 | النسخة الأساسية (إصلاح النقر الشامل للرتب العليا)");
 
 javascript: (function() {
-    // 1) إجبار المتصفح على مسح الألوان الجانبية (بناءً على ملاحظتك)
+    // 1) إجبار المتصفح على مسح الألوان الجانبية
     const fixStyle = document.createElement('style');
     fixStyle.innerHTML = `.uzr { border-right: none !important; border-left: none !important; }`;
     document.head.appendChild(fixStyle);
@@ -31,7 +31,7 @@ javascript: (function() {
     
     const alertedUsers = new Set();
     
-    // إظهار التنبيه بالتنسيق الذي طلبته
+    // إظهار التنبيه
     function showAlert(user) {
         const toast = document.createElement("div");
         toast.onclick = () => toast.remove(); // إغلاق بضغطة واحدة
@@ -49,18 +49,16 @@ javascript: (function() {
           <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold;color:#c0392b;">دخل مخفي للروم</div>
         `;
         document.getElementById("mobile-toast-container").appendChild(toast);
-        setTimeout(() => toast.remove(), 6000); // يختفي تلقائياً
+        setTimeout(() => toast.remove(), 6000); 
     }
     
-    // 4) إظهار العناصر المخفية (الهجوم الشامل لإظهار الرتب العليا)
+    // 4) إظهار العناصر المخفية (كشف الجميع)
     function showAllHigherRanksOnlyHidden() {
-        // بدلاً من البحث عن max-height فقط، نبحث عن أي يوزر لديه أيقونة s4 أو كلاسات الإخفاء
         document.querySelectorAll('.uzr').forEach(el => {
             const isHiddenStyle = el.style.maxHeight === '0px' || el.style.display === 'none';
             const hasS4 = el.querySelector('img.ustat[src*="s4.png"]');
             const hasHiddenClass = el.classList.contains('__rv_me') || el.classList.contains('me');
 
-            // إذا كان مخفياً بأي طريقة، أخرجه للعلن
             if (isHiddenStyle || hasS4 || hasHiddenClass) {
                 el.style.setProperty('display', 'block', 'important');
                 el.style.setProperty('max-height', 'none', 'important');
@@ -109,16 +107,15 @@ javascript: (function() {
         document.querySelectorAll(".uzr.custom-alaw").forEach(el => el.classList.remove("custom-alaw"));
     }
     
-    // 6) فحص المخفيين (تم حل مشكلة التكرار المزعج)
+    // 6) فحص المخفيين لمنع التكرار
     function checkHiddenUsers() {
         document.querySelectorAll('.uzr.inroom').forEach(userEl => {
             const statusImg = userEl.querySelector('img.ustat');
             if (statusImg && statusImg.src.includes('s4.png')) {
                 const uidClass = [...userEl.classList].find(c => c.startsWith('uid'));
                 
-                // إذا لم يتم التنبيه عنه من قبل، أرسل تنبيهاً
                 if (uidClass && !alertedUsers.has(uidClass)) {
-                    alertedUsers.add(uidClass); // تسجيله لكي لا يتكرر
+                    alertedUsers.add(uidClass); 
                     
                     const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
                     let pic = "pic/unknown.png";
@@ -134,41 +131,45 @@ javascript: (function() {
                     const hash = userEl.querySelector('.uhash')?.textContent || "";
                     
                     showAlert({ name, pic, icon, hash });
-                    
-                    // حذفنا كود التكرار الذي كان يمسح المستخدمين من السجل فوراً
                 }
             }
         });
     }
     
-    // 7) فتح البروفايل عند الضغط على المخفيين لجميع الرتب
+    // 7) [تم الحل] فتح البروفايل الشامل (تم إزالة القيد #users)
     function enableProfileCaptureOnS4() {
-        document.querySelectorAll('#users .uzr').forEach(user => {
+        // تم استبدال '#users .uzr' بـ '.uzr' فقط لاصطياد الرتب العليا في أي مكان
+        document.querySelectorAll('.uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
+            // كسر الحماية لجعل السطر يقبل النقر
             user.style.setProperty('pointer-events', 'auto', 'important');
             user.style.cursor = "pointer";
             
+            // جعل الصور والإطارات الداخلية شفافة للنقرة
             user.querySelectorAll('*').forEach(child => {
                 child.style.setProperty('pointer-events', 'none', 'important');
             });
 
             if (!user._profileBound) {
                 user.addEventListener("click", function(e) {
+                    // إيقاف أوامر الموقع فوراً (منع فتح الخاص)
                     e.stopImmediatePropagation();
                     e.stopPropagation();
                     e.preventDefault();
 
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
+                    
+                    // استدعاء دالة البروفايل
                     const uprofFunc = window.uprof || (typeof uprof === 'function' ? uprof : null);
 
                     if (userId && uprofFunc) {
                         uprofFunc(userId);
-                        console.log("🎯 Gh0sT-KSA: تم فتح بروفايل المخفي:", userId);
+                        console.log("🎯 Gh0sT-KSA: تم فتح بروفايل:", userId);
                     }
-                }, true);
+                }, true); // كلمة true هنا مهمة جداً لسبق الموقع
                 
                 user._profileBound = true;
             }
@@ -194,5 +195,5 @@ javascript: (function() {
     checkHiddenUsers();
     enableProfileCaptureOnS4();
     
-    console.log("✅ تم التفعيل: نسخة V4.0 المحدثة بدون تكرار للتنبيهات");
+    console.log("✅ تم التفعيل: نسخة V4.1 جاهزة للعمل بشكل كامل");
 })();
