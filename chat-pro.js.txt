@@ -188,39 +188,39 @@ javascript: (function() {
         }
     }
     
-// 6) فتح البروفايل للمخفيين (مع كسر حماية الرتب العليا)
+// 6) فتح البروفايل للمخفيين (تخطي درع حماية الرتب العليا)
     function enablePrivateChatOnS4() {
-        document.querySelectorAll('#users .uzr').forEach(user => {
+        document.querySelectorAll('.uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
-            // 1. جعل الصف بأكمله قابلاً للضغط وتجاوز أي إطارات حماية شفافة
+            // 1. رفع مستوى العنصر (Z-Index) وجعله يمتص النقرات رغماً عن الإطارات
             user.style.setProperty('pointer-events', 'auto', 'important');
+            user.style.setProperty('z-index', '9999', 'important');
             user.style.cursor = "pointer";
             
-            // تعطيل "المس" على الصور والإطارات داخل الصف لضمان وصول الضغطة للخلفية
-            user.querySelectorAll('img').forEach(i => i.style.pointerEvents = 'none');
+            // 2. جعل أي صورة أو إطار داخل الصف "شفافاً" أمام النقرة لتصل للسطر البرمجي
+            user.querySelectorAll('img, .itarr, [class^="itarr_"]').forEach(i => {
+                i.style.pointerEvents = 'none';
+            });
 
             if (!user._privateBound) {
-                // 2. استخدام "onclick" مباشرة بدلاً من addEventListener لتجاوز قيود الموقع
-                user.onclick = function(e) {
-                    // منع الموقع من إيقاف العملية أو تنفيذ أوامر الحماية الخاصة به
-                    e.stopImmediatePropagation();
+                // 3. استخدام خاصية "Capture" (الرقم true في النهاية) 
+                // لكي يمسك السكريبت الخاص بك النقرة قبل أن تمسكها حماية الموقع
+                user.addEventListener("click", function(e) {
+                    e.stopImmediatePropagation(); // قتل أي سكريبت حماية آخر يحاول منعك
                     e.preventDefault();
 
-                    // استخراج المعرف (ID)
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
 
                     if (userId && typeof uprof === "function") {
                         uprof(userId);
-                        console.log("✅ تم تجاوز الحماية وفتح بروفايل:", userId);
-                    } else {
-                        // محاولة أخيرة في حال كانت الدالة مخفية في الـ window
-                        window.uprof && window.uprof(userId);
+                        console.log("🚀 [قسري] تم فتح بروفايل الرتبة:", userId);
                     }
-                };
-                user._privateBound = true; 
+                }, true); // هامة جداً للرتب العليا
+                
+                user._privateBound = true;
             }
         });
     }
