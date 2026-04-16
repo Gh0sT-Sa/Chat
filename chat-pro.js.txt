@@ -1,17 +1,24 @@
-console.log("Gh0sT-KSA Sledgehammer V3.4 | نسخة كسر الحماية الشاملة");
+console.log("Gh0sT-KSA Phantom V3.5 | جاري اصطياد الأشباح...");
 
 (function() {
     const alertedUsers = new Set();
 
-    // 1) إجبار المتصفح على قبول التنسيقات (CSS Injection)
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .uzr[data-s4="true"] { cursor: pointer !important; pointer-events: auto !important; }
-        .uzr[data-s4="true"] * { pointer-events: none !important; }
+    // 1) حقن CSS لإجبار الظهور وكسر الحماية
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = `
+        .uzr[data-ghost="true"] { 
+            display: block !important; 
+            max-height: none !important; 
+            visibility: visible !important; 
+            opacity: 1 !important;
+            border-right: 3px dashed #e74c3c !important;
+        }
+        .uzr[data-ghost="true"] * { pointer-events: none !important; }
+        #mobile-toast-container { position:fixed; top:15px; left:50%; transform:translateX(-50%); z-index:999999; }
     `;
-    document.head.appendChild(startup);
+    document.head.appendChild(styleEl);
 
-    // 2) استخراج صورة المستخدم
+    // 2) وظيفة استخراج الصورة
     function getUserPic(el) {
         const picDiv = el.querySelector('.u-pic');
         if (!picDiv) return "pic/unknown.png";
@@ -20,70 +27,82 @@ console.log("Gh0sT-KSA Sledgehammer V3.4 | نسخة كسر الحماية الش
         return (match && match[1]) ? match[1] : "pic/unknown.png";
     }
 
-    // 3) اعتراض الدالة الأصلية للموقع (التعديل الجذري)
-    // معظم هذه الشاتات تستخدم openw أو uprof
+    // 3) اعتراض نظام الموقع (قناص البروفايلات)
     const originalOpenw = window.openw;
     window.openw = function(id, isPrivate) {
-        // فحص: هل المستخدم الذي نحاول فتح خاص معه هو S4؟
         const userEl = document.querySelector(`.uid${id}`);
         const isS4 = userEl && userEl.querySelector('img.ustat[src*="s4.png"]');
 
         if (isS4) {
-            console.log("🎯 Gh0sT-KSA: تم اعتراض طلب 'الخاص' وتحويله لـ 'بروفايل' للمعرف:", id);
+            console.log("🎯 Gh0sT-KSA: تم قنص بروفايل الرتبة العليا:", id);
             if (typeof uprof === 'function') return uprof(id);
             if (window.uprof) return window.uprof(id);
         }
-        
-        // إذا لم يكن S4، اترك الموقع يعمل بشكل طبيعي
         if (originalOpenw) return originalOpenw.apply(this, arguments);
     };
 
-    // 4) إظهار المخفيين وتنظيف القائمة
-    function showHidden() {
+    // 4) نظام التنبيهات (تم إصلاح المتغيرات)
+    function notify(name, pic) {
+        let container = document.getElementById("mobile-toast-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "mobile-toast-container";
+            document.body.appendChild(container);
+        }
+        const t = document.createElement("div");
+        t.style = "background:rgba(255,255,255,0.95); border-right:5px solid #e74c3c; padding:12px; margin-top:8px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.3); direction:rtl; min-width:250px; font-family:sans-serif; transition: 0.5s;";
+        t.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img src="${pic}" style="width:35px; height:35px; border-radius:50%; border:2px solid #e74c3c;">
+                <div>
+                    <b style="color:#c0392b; display:block;">${name}</b>
+                    <span style="font-size:11px; color:#666;">تم رصد رتبة عليا متخفية! 👻</span>
+                </div>
+            </div>
+        `;
+        container.appendChild(t);
+        setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 500); }, 5000);
+    }
+
+    // 5) محرك كشف الأشباح (إظهار الرتب العليا)
+    function huntGhosts() {
+        // استهداف كافة العناصر التي قد تكون مخفية بأي وسيلة
         document.querySelectorAll(".uzr").forEach(el => {
             const img = el.querySelector('img.ustat');
             const isS4 = img && img.src.includes('s4.png');
-            const hasUid = [...el.classList].some(c => c.startsWith('uid'));
-
-            if (isS4 && hasUid) {
+            
+            if (isS4) {
+                // إجبار الظهور مهما كانت الطريقة (display, max-height, classes)
                 el.style.setProperty('display', 'block', 'important');
                 el.style.setProperty('max-height', 'none', 'important');
-                el.setAttribute('data-s4', 'true'); // وسم للـ CSS
-                el.querySelectorAll('[style*="display: none"]').forEach(inner => inner.style.display = 'block');
+                el.classList.remove('__rv_me'); // إزالة كلاس الاختفاء الخاص بالرتب
+                el.setAttribute('data-ghost', 'true');
                 
-                // تنبيه الدخول
-                const uid = [...el.classList].find(c => c.startsWith('uid'));
-                if (uid && !alertedUsers.has(uid)) {
-                    alertedUsers.add(uid);
-                    notify(el.getAttribute("n") || "مستخدم مخفي", getUserPic(el));
+                // إظهار المحتوى الداخلي
+                el.querySelectorAll('*').forEach(child => {
+                    if (window.getComputedStyle(child).display === 'none') {
+                        child.style.setProperty('display', 'block', 'important');
+                    }
+                });
+
+                // نظام التنبيه
+                const uidClass = [...el.classList].find(c => c.startsWith('uid'));
+                if (uidClass && !alertedUsers.has(uidClass)) {
+                    alertedUsers.add(uidClass);
+                    notify(el.getAttribute("n") || "رتبة مخفية", getUserPic(el));
                 }
             }
         });
     }
 
-    // 5) نظام التنبيهات
-    function notify(name, pic) {
-        if (!document.getElementById("mobile-toast-container")) {
-            const c = document.createElement("div");
-            c.id = "mobile-toast-container";
-            c.style = "position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:99999;";
-            document.body.appendChild(startup);
-        }
-        const t = document.createElement("div");
-        t.style = "background:white; border-right:5px solid #8e44ad; padding:10px; margin-top:5px; border-radius:5px; box-shadow:0 2px 10px rgba(0,0,0,0.2); direction:rtl; min-width:200px";
-        t.innerHTML = `<img src="${pic}" style="width:30px;height:30px;border-radius:50%;vertical-align:middle"> <b style="color:#8e44ad">${name}</b> رُصد متخفياً!`;
-        document.getElementById("mobile-toast-container").appendChild(startup);
-        setTimeout(() => t.remove(), 5000);
-    }
+    // التشغيل
+    setInterval(huntGhosts, 1500);
 
-    // التشغيل المستمر
-    setInterval(showHidden, 1000);
-
-    // رسالة التفعيل النهائية
+    // رسالة التفعيل (تم إصلاح الخطأ فيها)
     const startMsg = document.createElement("div");
-    startMsg.style = "position:fixed; bottom:20px; left:20px; background:#8e44ad; color:white; padding:15px; border-radius:10px; z-index:999999; direction:rtl; font-weight:bold;";
-    startMsg.innerHTML = "⚡ Gh0sT-KSA V3.4 Activated<br>🔓 وضع كسر الحماية المفعل";
-    document.body.appendChild(startup);
-    setTimeout(() => startMsg.remove(), 4000);
+    startMsg.style = "position:fixed; bottom:20px; right:20px; background:#c0392b; color:white; padding:15px; border-radius:10px; z-index:999999; direction:rtl; font-weight:bold; box-shadow:0 5px 20px rgba(0,0,0,0.5);";
+    startMsg.innerHTML = "🛡️ Gh0sT-KSA V3.5 [Phantom]<br>✅ تم إصلاح أخطاء التحميل<br>👻 جاري كشف الرتب العليا...";
+    document.body.appendChild(startMsg);
+    setTimeout(() => startMsg.remove(), 5000);
 
 })();
