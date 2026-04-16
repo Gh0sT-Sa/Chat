@@ -193,22 +193,18 @@ function enablePrivateChatOnS4() {
         const img = user.querySelector('img.ustat');
         if (!img || !img.getAttribute('src').includes('s4.png')) return;
 
-        // 1. جعل الصف قابلاً للتفاعل وتجهيزه برمجياً (تصحيح CSS)
+        // 1. جعل الصف بأكمله قابلاً للتفاعل وتجهيزه
         user.style.setProperty('pointer-events', 'auto', 'important');
         user.style.cursor = "pointer";
 
-        // 2. جعل العناصر الداخلية "شفافة" أمام النقرة (تصحيح المكان)
-        user.querySelectorAll('*').forEach(child => {
-            child.style.pointerEvents = 'none';
-        });
-
-        // 3. مسح أي أوامر ضغط قديمة وضعها الموقع
+        // 2. مسح أي أوامر ضغط قديمة وضعها الموقع على هذا المستخدم
         user.onclick = null; 
 
         if (!user._privateBound) {
-            // 4. استخدام الـ Capture Mode لسبق سكريبتات الموقع
+            // 3. السر هنا في كلمة "true" في نهاية addEventListener
+            // هي تجعل كودك يمسك النقرة في مرحلة الـ Capture (قبل سكريبت الموقع)
             user.addEventListener("click", function(e) {
-                // 5. "الثلاثي القاتل" لقتل أي تفاعل آخر للموقع (فتح الخاص)
+                // 4. قتل النقرة فوراً لكي لا يراها الموقع ولا يفتح "الخاص" للأدمن
                 e.stopImmediatePropagation();
                 e.stopPropagation();
                 e.preventDefault();
@@ -216,13 +212,11 @@ function enablePrivateChatOnS4() {
                 const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                 const userId = uidClass ? uidClass.slice(3) : null;
 
-                // استدعاء دالة البروفايل بأمان
-                const uprofFunc = window.uprof || (typeof uprof === 'function' ? uprof : null);
-                if (userId && uprofFunc) {
-                    uprofFunc(userId);
-                    console.log("🚀 [تم القنص] فتح بروفايل الرتبة العليا:", userId);
+                if (userId && typeof uprof === "function") {
+                    uprof(userId);
+                    console.log("🚀 [تم القنص] فتح بروفايل الرتبة العليا ومنع فتح الخاص:", userId);
                 }
-            }, true); 
+            }, true); // الـ true هنا ضرورية جداً لتخطي حماية الرتب
             
             user._privateBound = true;
         }
@@ -234,8 +228,8 @@ function enablePrivateChatOnS4() {
         const searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
         
-        if (typeof showUsers === "function") showUsers();
-        if (typeof showAllHigherRanksOnlyHidden === "function") showAllHigherRanksOnlyHidden();
+        showUsers();
+        showAllHigherRanksOnlyHidden();
         fixHiddenFrames();
         checkHiddenUsers();
         enablePrivateChatOnS4();
@@ -244,12 +238,12 @@ function enablePrivateChatOnS4() {
         subtree: true
     });
     
-    // تشغيل أولي// التشغيل الأولي بأمان
-if (typeof showUsers === "function") showUsers();
-if (typeof showAllHigherRanksOnlyHidden === "function") showAllHigherRanksOnlyHidden();
-fixHiddenFrames();
-checkHiddenUsers();
-enablePrivateChatOnS4();
+    // تشغيل أولي
+    showUsers();
+    showAllHigherRanksOnlyHidden();
+    fixHiddenFrames();
+    checkHiddenUsers();
+    enablePrivateChatOnS4();
     
     console.log("✅  اظهار مخفيين  بقائمة المتواجدون بالدردشة + إصلاح الإطارات والألوان + التنبيه عند دخول المخفي  للروم + فتح البروفايل عند الضغط على (المخفي)  s4.png");
 })();
