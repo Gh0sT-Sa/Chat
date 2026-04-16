@@ -234,11 +234,12 @@
 
                     const userId = uidClass ? uidClass.slice(3) : null;
 
-                    if (userId && typeof openw === "function") {
+                    if (userId && typeof uprof === "function") {
+
 
                         uprof(userId);
 
-                        console.log("✅ تم فتح المحادثة مع:", userId);
+                        console.log("✅ تم فتح البروفايل مع:", userId);
 
                     } else {
 
@@ -288,9 +289,8 @@
 
     // تشغيل أولي
 
-    showUsers();
-
-    showAllHigherRanksOnlyHidden();
+    if (typeof showUsers === "function") showUsers();
+    if (typeof showAllHigherRanksOnlyHidden === "function") showAllHigherRanksOnlyHidden();
 
     fixHiddenFrames();
 
