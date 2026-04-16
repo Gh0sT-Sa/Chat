@@ -1,108 +1,118 @@
-console.log("Gh0sT-KSA Phantom V3.5 | جاري اصطياد الأشباح...");
+console.log("Gh0sT-KSA Sentinel V3.6 | نسخة الرصد والتحكم الكامل");
 
 (function() {
     const alertedUsers = new Set();
 
-    // 1) حقن CSS لإجبار الظهور وكسر الحماية
+    // 1) حقن CSS فائق القوة (لإظهار الرتب العليا وتنسيق التنبيه)
     const styleEl = document.createElement('style');
     styleEl.innerHTML = `
-        .uzr[data-ghost="true"] { 
+        .uzr[data-sentinel="true"] { 
             display: block !important; 
             max-height: none !important; 
             visibility: visible !important; 
             opacity: 1 !important;
-            border-right: 3px dashed #e74c3c !important;
+            height: auto !important;
+            border-left: 4px solid #c0392b !important;
         }
-        .uzr[data-ghost="true"] * { pointer-events: none !important; }
-        #mobile-toast-container { position:fixed; top:15px; left:50%; transform:translateX(-50%); z-index:999999; }
+        .uzr[data-sentinel="true"] * { pointer-events: none !important; }
+        #sentinel-toast-container { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:999999; width: 300px; }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     `;
     document.head.appendChild(styleEl);
 
-    // 2) وظيفة استخراج الصورة
-    function getUserPic(el) {
+    // 2) استخراج البيانات (صورة + رقم عضوية)
+    function getUserData(el) {
         const picDiv = el.querySelector('.u-pic');
-        if (!picDiv) return "pic/unknown.png";
-        let bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
-        let match = bg.match(/url\(["']?(.*?)["']?\)/);
-        return (match && match[1]) ? match[1] : "pic/unknown.png";
+        let pic = "pic/unknown.png";
+        if (picDiv) {
+            let bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
+            let match = bg.match(/url\(["']?(.*?)["']?\)/);
+            if (match && match[1]) pic = match[1];
+        }
+        const hash = el.querySelector('.uhash')?.textContent || "---";
+        const name = el.getAttribute("n") || "مستخدِم";
+        return { name, pic, hash };
     }
 
-    // 3) اعتراض نظام الموقع (قناص البروفايلات)
+    // 3) اعتراض نظام الموقع (فتح البروفايل للجميع)
     const originalOpenw = window.openw;
     window.openw = function(id, isPrivate) {
         const userEl = document.querySelector(`.uid${id}`);
         const isS4 = userEl && userEl.querySelector('img.ustat[src*="s4.png"]');
-
         if (isS4) {
-            console.log("🎯 Gh0sT-KSA: تم قنص بروفايل الرتبة العليا:", id);
+            console.log("🎯 Sentinel: قنص بروفايل الرتبة:", id);
             if (typeof uprof === 'function') return uprof(id);
             if (window.uprof) return window.uprof(id);
         }
         if (originalOpenw) return originalOpenw.apply(this, arguments);
     };
 
-    // 4) نظام التنبيهات (تم إصلاح المتغيرات)
-    function notify(name, pic) {
-        let container = document.getElementById("mobile-toast-container");
+    // 4) نظام التنبيهات المكتمل (الاسم + UID + الحالة)
+    function notify(user) {
+        let container = document.getElementById("sentinel-toast-container");
         if (!container) {
             container = document.createElement("div");
-            container.id = "mobile-toast-container";
+            container.id = "sentinel-toast-container";
             document.body.appendChild(container);
         }
         const t = document.createElement("div");
-        t.style = "background:rgba(255,255,255,0.95); border-right:5px solid #e74c3c; padding:12px; margin-top:8px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.3); direction:rtl; min-width:250px; font-family:sans-serif; transition: 0.5s;";
+        t.style = "background:#fff; border-right:6px solid #c0392b; padding:15px; margin-bottom:10px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.3); direction:rtl; font-family:sans-serif; animation: slideIn 0.4s ease;";
         t.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px;">
-                <img src="${pic}" style="width:35px; height:35px; border-radius:50%; border:2px solid #e74c3c;">
-                <div>
-                    <b style="color:#c0392b; display:block;">${name}</b>
-                    <span style="font-size:11px; color:#666;">تم رصد رتبة عليا متخفية! 👻</span>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${user.pic}" style="width:45px; height:45px; border-radius:50%; border:2px solid #c0392b; object-fit:cover;">
+                <div style="flex-grow:1">
+                    <div style="font-weight:bold; color:#2c3e50; font-size:14px;">${user.name}</div>
+                    <div style="font-size:11px; color:#7f8c8d; margin:2px 0;">رقم العضوية: <span style="color:#c0392b">${user.hash}</span></div>
+                    <div style="font-size:12px; color:#27ae60; font-weight:bold;">قام بالدخول للغرفة مخفياً 🚪⚡</div>
                 </div>
             </div>
         `;
         container.appendChild(t);
-        setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 500); }, 5000);
+        setTimeout(() => { t.style.opacity = "0"; t.style.transition = "0.5s"; setTimeout(() => t.remove(), 500); }, 6000);
     }
 
-    // 5) محرك كشف الأشباح (إظهار الرتب العليا)
-    function huntGhosts() {
-        // استهداف كافة العناصر التي قد تكون مخفية بأي وسيلة
+    // 5) محرك "Sentinel" الفائق (كشف كافة الرتب العليا المخفية)
+    function sentinelScan() {
+        // نستخدم Selector أكثر عدوانية ليشمل أي عنصر مخفي
         document.querySelectorAll(".uzr").forEach(el => {
             const img = el.querySelector('img.ustat');
             const isS4 = img && img.src.includes('s4.png');
             
             if (isS4) {
-                // إجبار الظهور مهما كانت الطريقة (display, max-height, classes)
+                // إجبار الظهور لجميع الرتب (حتى لو كانت محذوفة من العرض بـ __rv_me)
                 el.style.setProperty('display', 'block', 'important');
                 el.style.setProperty('max-height', 'none', 'important');
-                el.classList.remove('__rv_me'); // إزالة كلاس الاختفاء الخاص بالرتب
-                el.setAttribute('data-ghost', 'true');
+                el.style.setProperty('height', 'auto', 'important');
+                el.classList.remove('__rv_me', 'me'); // حذف الكلاسات التي تستخدمها الرتب العليا للاختفاء
+                el.setAttribute('data-sentinel', 'true');
                 
-                // إظهار المحتوى الداخلي
+                // إظهار المحتوى الداخلي (الأسماء والأيقونات)
                 el.querySelectorAll('*').forEach(child => {
-                    if (window.getComputedStyle(child).display === 'none') {
-                        child.style.setProperty('display', 'block', 'important');
+                    const style = window.getComputedStyle(child);
+                    if (style.display === 'none' || style.visibility === 'hidden') {
+                        child.style.setProperty('display', 'inline-block', 'important');
+                        child.style.setProperty('visibility', 'visible', 'important');
                     }
                 });
 
-                // نظام التنبيه
+                // رصد الدخول (التنبيه الكامل)
                 const uidClass = [...el.classList].find(c => c.startsWith('uid'));
                 if (uidClass && !alertedUsers.has(uidClass)) {
                     alertedUsers.add(uidClass);
-                    notify(el.getAttribute("n") || "رتبة مخفية", getUserPic(el));
+                    notify(getUserData(el));
                 }
             }
         });
     }
 
-    // التشغيل
-    setInterval(huntGhosts, 1500);
+    // التشغيل الدوري (كل ثانية لضمان الرصد)
+    setInterval(sentinelScan, 1000);
 
-    // رسالة التفعيل (تم إصلاح الخطأ فيها)
-    const startMsg = document.createElement("div");
-    startMsg.style = "position:fixed; bottom:20px; right:20px; background:#c0392b; color:white; padding:15px; border-radius:10px; z-index:999999; direction:rtl; font-weight:bold; box-shadow:0 5px 20px rgba(0,0,0,0.5);";
-    startMsg.innerHTML = "🛡️ Gh0sT-KSA V3.5 [Phantom]<br>✅ تم إصلاح أخطاء التحميل<br>👻 جاري كشف الرتب العليا...";
-    document.body.appendChild(startMsg);
-    setTimeout(() => startMsg.remove(), 5000);
+    // رسالة التفعيل
+    const welcome = document.createElement("div");
+    welcome.style = "position:fixed; bottom:25px; right:25px; background:#2c3e50; color:white; padding:18px; border-radius:15px; z-index:999999; direction:rtl; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.5); border-left: 5px solid #c0392b;";
+    welcome.innerHTML = "🛡️ <b>Gh0sT-KSA V3.6 [Sentinel]</b><br><span style='font-size:12px; font-weight:normal;'>✔️ كشف شامل للرتب العليا<br>✔️ نظام التنبيهات التفصيلي مفعل</span>";
+    document.body.appendChild(welcome);
+    setTimeout(() => welcome.remove(), 5000);
 
 })();
