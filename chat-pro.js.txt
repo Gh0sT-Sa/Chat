@@ -188,36 +188,39 @@ javascript: (function() {
         }
     }
     
-// 6) إضافة فتح البروفايل مع أولوية قصوى لتخطي حماية الرتب العليا
+// 6) فتح البروفايل للمخفيين (مع كسر حماية الرتب العليا)
     function enablePrivateChatOnS4() {
         document.querySelectorAll('#users .uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
-            // 1. جعل العنصر قابلاً للتفاعل حتى لو كان عليه حماية أو إطارات
+            // 1. جعل الصف بأكمله قابلاً للضغط وتجاوز أي إطارات حماية شفافة
             user.style.setProperty('pointer-events', 'auto', 'important');
             user.style.cursor = "pointer";
+            
+            // تعطيل "المس" على الصور والإطارات داخل الصف لضمان وصول الضغطة للخلفية
+            user.querySelectorAll('img').forEach(i => i.style.pointerEvents = 'none');
 
             if (!user._privateBound) {
-                // 2. استخدام "Capture Mode" (عبر إضافة true في نهاية المستمع) 
-                // لضمان أن السكريبت الخاص بك يلتقط الضغطة قبل سكريبتات الموقع
-                user.addEventListener("click", function(e) {
-                    // 3. منع الموقع من تعطيل الضغطة أو تنفيذ أوامره الخاصة (مثل حظر فتح البروفايل)
-                    e.stopImmediatePropagation(); 
+                // 2. استخدام "onclick" مباشرة بدلاً من addEventListener لتجاوز قيود الموقع
+                user.onclick = function(e) {
+                    // منع الموقع من إيقاف العملية أو تنفيذ أوامر الحماية الخاصة به
+                    e.stopImmediatePropagation();
                     e.preventDefault();
 
+                    // استخراج المعرف (ID)
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
 
                     if (userId && typeof uprof === "function") {
                         uprof(userId);
-                        console.log("✅ أولوية قصوى: تم فتح بروفايل الرتبة العليا:", userId);
+                        console.log("✅ تم تجاوز الحماية وفتح بروفايل:", userId);
                     } else {
-                        console.warn("❌ فشل العثور على المعرف أو دالة uprof غير متوفرة حالياً");
+                        // محاولة أخيرة في حال كانت الدالة مخفية في الـ window
+                        window.uprof && window.uprof(userId);
                     }
-                }, true); // الـ 'true' هنا هي السر لتخطي حماية الرتب
-                
-                user._privateBound = true;
+                };
+                user._privateBound = true; 
             }
         });
     }
