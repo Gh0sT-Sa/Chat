@@ -1,179 +1,120 @@
-console.log("Gh0sT-KSA Multi-Tool V3.0.1 | النسخة الاحترافية المصححة");
+console.log("Gh0sT-KSA Tactical V3.2 | النسخة المستقرة");
 
 (function() {
-    // 1) إظهار الأزرار وإزالة الإطارات
-    function showUsers() {
-        document.querySelectorAll('.btn').forEach(el => el.style.display = 'block');
-        document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
-        
-        if (typeof _ma56zznz2 !== 'undefined' && Array.isArray(_ma56zznz2)) {
-            _ma56zznz2.forEach(obj => {
-                document.querySelectorAll(`.${obj.cls}`).forEach(el => {
-                    el.classList.remove(obj.cls);
-                    el.style.display = 'block';
-                });
-            });
-        }
-    }
-    
-    // 2) نظام التنبيهات (دخول المخفيين)
-    if (!document.getElementById("mobile-toast-container")) {
-        const container = document.createElement("div");
-        container.id = "mobile-toast-container";
-        container.style = "position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:99999;max-width:320px;text-align:center";
-        document.body.appendChild(container);
-    }
-    
     const alertedUsers = new Set();
-    
+
+    // 1) وظيفة استخراج الصورة الحقيقية
+    function getUserPic(el) {
+        const picDiv = el.querySelector('.u-pic');
+        if (!picDiv) return "pic/unknown.png";
+        let bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
+        let match = bg.match(/url\(["']?(.*?)["']?\)/);
+        return (match && match[1]) ? match[1] : "pic/unknown.png";
+    }
+
+    // 2) نظام التنبيهات المطور (بدون تكرار ومع صور)
     function showAlert(user) {
+        if (!document.getElementById("mobile-toast-container")) {
+            const container = document.createElement("div");
+            container.id = "mobile-toast-container";
+            container.style = "position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:99999;max-width:320px;text-align:center";
+            document.body.appendChild(container);
+        }
+        
         const toast = document.createElement("div");
         toast.onclick = () => toast.remove();
-        toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:left";
+        toast.style = "background:#f9f9f9;border-left:5px solid #2ecc71;border-radius:8px;padding:12px;margin-top:10px;font-family:sans-serif;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;animation: slideDown 0.5s ease;";
         toast.innerHTML = `
-          <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
-            ${user.icon ? `<img src="${user.icon}" style="height:20px">` : ""}
-            <div style="flex-grow:1">
-              <div style="font-weight:bold">${user.name}</div>
-              <div style="font-size:12px;color:gray">${user.hash}</div>
+          <div style="display:flex;align-items:center;gap:10px;direction:rtl">
+            <img src="${user.pic}" style="width:40px;height:40px;border-radius:50%;border:2px solid #2ecc71;object-fit:cover">
+            <div style="text-align:right">
+              <div style="font-weight:bold;color:#333">${user.name}</div>
+              <div style="font-size:11px;color:#27ae60">دخل مخفي للروم الآن ⚡</div>
             </div>
           </div>
-          <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold">دخل مخفي للروم</div>
         `;
         document.getElementById("mobile-toast-container").appendChild(toast);
+        setTimeout(() => toast.remove(), 6000);
     }
 
-    // [Checklist] وظيفة فحص النظام عند التشغيل
-    function runStartupChecklist() {
-        const features = [
-            "إظهار الأزرار المخفية",
-            "كشف المتخفيين (Higher Ranks)",
-            "نظام التنبيهات الذكي",
-            "فتح البروفايل (قنص الرتب)"
-        ];
-        
-        const checkListHtml = features.map(f => `<div style="text-align:right; direction:rtl;">✔️ ${f}</div>`).join("");
-        
-        const startupToast = document.createElement("div");
-        startupToast.style = "background:#2ecc71; color:white; padding:15px; border-radius:10px; position:fixed; bottom:20px; right:20px; z-index:100000; font-family:sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.3);";
-        startupToast.innerHTML = `
-            <div style="font-weight:bold; border-bottom:1px solid white; margin-bottom:5px; text-align:center; direction:rtl;">🚀 تم تفعيل Gh0sT-KSA بنجاح</div>
-            ${checkListHtml}
-        `;
-        document.body.appendChild(startupToast);
-        setTimeout(() => { startupToast.style.opacity = '0'; startupToast.style.transition = '0.5s'; setTimeout(() => startupToast.remove(), 500); }, 5000);
-    }
-    
-    // 3) إظهار العناصر المخفية السابقة
-    function showAllHigherRanksOnlyHidden() {
-        const hiddenSelector = [".uzr[style*='max-height: 0']", ".uzr[style*='max-height:0']"].join(",");
-        document.querySelectorAll(hiddenSelector).forEach(el => { el.setAttribute('data-was-hidden', '1'); });
-        
-        document.querySelectorAll("[data-was-hidden='1']").forEach(el => {
-            const searchBox = document.getElementById('usearch');
-            if (searchBox && searchBox.value.trim().length > 0) return;
-            if (!el._patched) {
-                const originalAdd = el.classList.add;
-                el.classList.add = function(...args) { return originalAdd.apply(this, args.filter(cls => cls !== '__rv_me')); };
-                el._patched = true;
-            }
-            el.classList.remove('__rv_me');
+    // 3) إظهار المخفيين (مع حماية الفواصل)
+    function showHiddenSafely() {
+        document.querySelectorAll(".uzr[style*='max-height: 0'], .uzr[style*='max-height:0']").forEach(el => {
+            // حماية الفواصل: إذا لم يكن هناك UID، لا تلمس العنصر
+            if (![...el.classList].some(c => c.startsWith('uid'))) return;
+            
             el.style.display = 'block';
             el.style.maxHeight = 'none';
-            el.querySelectorAll('[style*="display: none"]').forEach(inner => { inner.style.display = 'block'; });
-            const ustat = el.querySelector("img.ustat, img[src*='s0.png'], img[src*='s4.png']");
-            if (ustat) ustat.src = 'imgs/s4.png';
+            el.querySelectorAll('[style*="display: none"]').forEach(inner => inner.style.display = 'block');
+            
+            const ustat = el.querySelector("img.ustat");
+            if (ustat && !ustat.src.includes('s4.png')) ustat.src = 'imgs/s4.png';
         });
     }
-    
-    // 4) إصلاح الإطارات والألوان
-    function fixHiddenFrames() {
-        document.querySelectorAll('.uzr').forEach(el => {
-            el.style.width = ''; el.style.height = '';
-            const frameImg = el.querySelector('.u-pic img[class^="itarr_"]');
-            if (frameImg) {
-                frameImg.classList.forEach(cls => {
-                    if (cls.startsWith('itarr_')) {
-                        const frameName = cls.replace('itarr_', '').toLowerCase();
-                        if (el.classList.contains(frameName)) { el.classList.remove(frameName); }
-                    }
-                });
-            }
-            const topic = el.querySelector('.u-topic');
-            if (topic) {
-                const bg = window.getComputedStyle(topic).backgroundColor;
-                const color = window.getComputedStyle(topic).color;
-                if (bg === color) { topic.style.color = '#000'; }
-            }
-        });
-    }
-    
-    // 5) فحص المخفيين
-    function checkHiddenUsers() {
-        document.querySelectorAll('.uzr.inroom').forEach(userEl => {
-            const statusImg = userEl.querySelector('img.ustat');
-            if (statusImg && statusImg.src.includes('s4.png')) {
-                const uidClass = [...userEl.classList].find(c => c.startsWith('uid'));
-                if (uidClass && !alertedUsers.has(uidClass)) {
-                    alertedUsers.add(uidClass);
-                    const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
-                    showAlert({ name, pic: "pic/unknown.png", icon: "", hash: userEl.querySelector('.uhash')?.textContent || "" });
-                }
-            }
-        });
-    }
-    
-    // 6) قناص البروفايلات (فتح البروفايل للرتب العليا والأقل)
-    function enableProfileCaptureOnS4() {
+
+    // 4) قناص البروفايلات (تجاوز حماية الرتب العليا)
+    function captureProfiles() {
         document.querySelectorAll('.uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
-            if (!img || !img.getAttribute('src').includes('s4.png')) return;
-            
-            user.style.setProperty('pointer-events', 'auto', 'important');
-            user.style.cursor = "pointer";
-            
-            // جعل العناصر الداخلية شفافة لضمان وصول النقرة لسطر الكود
-            user.querySelectorAll('*').forEach(child => {
-                child.style.setProperty('pointer-events', 'none', 'important');
-            });
+            if (!img || !img.src.includes('s4.png')) return;
 
-            if (!user._profileBound) {
-                // استخدام Capture Phase (true) لسبق نظام الشات
+            if (!user._boundV32) {
+                user.style.cursor = "pointer";
+                // جعل العناصر الداخلية لا تعترض النقرة
+                user.querySelectorAll('.u-pic, .u-topic, .u-ico, img').forEach(child => {
+                    child.style.pointerEvents = 'none';
+                });
+
                 user.addEventListener("click", function(e) {
                     e.stopImmediatePropagation();
                     e.stopPropagation();
                     e.preventDefault();
 
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
-                    const userId = uidClass ? uidClass.slice(3) : null;
-                    const uprofFunc = window.uprof || (typeof uprof === 'function' ? uprof : null);
-
-                    if (userId && uprofFunc) {
-                        uprofFunc(userId);
-                        console.log("🎯 Gh0sT-KSA: تم فتح بروفايل:", userId);
+                    if (uidClass) {
+                        const id = uidClass.replace('uid', '');
+                        if (window.uprof) {
+                            window.uprof(id);
+                            console.log("🎯 Gh0sT-KSA: تم قنص بروفايل:", id);
+                        }
                     }
-                }, true); 
-                user._profileBound = true;
+                }, true);
+                user._boundV32 = true;
             }
         });
     }
-    
-    // 7) مراقبة DOM والتشغيل
-    const runAll = () => {
-        const searchBox = document.getElementById('usearch');
-        if (searchBox && searchBox.value.trim().length > 0) return;
-        showUsers();
-        showAllHigherRanksOnlyHidden();
-        fixHiddenFrames();
-        checkHiddenUsers();
-        enableProfileCaptureOnS4();
-    };
 
-    new MutationObserver(runAll).observe(document.body, { childList: true, subtree: true });
-    
-    // التشغيل الأولي
-    runAll();
-    runStartupChecklist();
+    // 5) الفحص الدوري والمراقبة
+    function runCoreLogic() {
+        showHiddenSafely();
+        captureProfiles();
+        
+        // فحص دخول المخفيين
+        document.querySelectorAll('.uzr.inroom').forEach(el => {
+            const img = el.querySelector('img.ustat');
+            if (img && img.src.includes('s4.png')) {
+                const uid = [...el.classList].find(c => c.startsWith('uid'));
+                if (uid && !alertedUsers.has(uid)) {
+                    alertedUsers.add(uid);
+                    showAlert({
+                        name: el.getAttribute("n") || "مستخدم مخفي",
+                        pic: getUserPic(el)
+                    });
+                }
+            }
+        });
+    }
+
+    // التشغيل
+    const observer = new MutationObserver(runCoreLogic);
+    observer.observe(document.body, { childList: true, subtree: true });
+    runCoreLogic();
+
+    // رسالة التشغيل (Checklist)
+    const startupToast = document.createElement("div");
+    startupToast.style = "background:#2c3e50;color:white;padding:12px;border-radius:10px;position:fixed;bottom:20px;right:20px;z-index:100000;font-family:sans-serif;direction:rtl;box-shadow:0 4px 15px rgba(0,0,0,0.4)";
+    startupToast.innerHTML = "🚀 <b>Gh0sT-KSA V3.2</b><br>✔️ تم إصلاح الفواصل<br>✔️ تم تفعيل قنص البروفايلات<br>✔️ نظام الصور يعمل";
+    document.body.appendChild(startupToast);
+    setTimeout(() => startupToast.remove(), 4000);
+
 })();
