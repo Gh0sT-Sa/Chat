@@ -1,6 +1,6 @@
-console.log("Gh0sT-KSA V4.1 | النسخة الأساسية (إصلاح النقر الشامل للرتب العليا)");
+console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر النهائي)");
 
-javascript: (function() {
+(function() {
     // 1) إجبار المتصفح على مسح الألوان الجانبية
     const fixStyle = document.createElement('style');
     fixStyle.innerHTML = `.uzr { border-right: none !important; border-left: none !important; }`;
@@ -135,43 +135,55 @@ javascript: (function() {
             }
         });
     }
+
+    // [إضافة أمنية]: اعتراض دالة الخاص (openw) وتحويلها لبروفايل للمخفيين
+    const originalOpenw = window.openw;
+    window.openw = function(id, isPrivate) {
+        const userEl = document.querySelector(`.uid${id}`);
+        if (userEl && userEl.querySelector('img.ustat[src*="s4.png"]')) {
+            if (typeof uprof === 'function') return uprof(id);
+        }
+        if (originalOpenw) return originalOpenw.apply(this, arguments);
+    };
     
-    // 7) [تم الحل] فتح البروفايل الشامل (تم إزالة القيد #users)
+    // 7) فتح البروفايل "البلدوزر" (مسح أوامر الموقع وفرض أوامرنا)
     function enableProfileCaptureOnS4() {
-        // تم استبدال '#users .uzr' بـ '.uzr' فقط لاصطياد الرتب العليا في أي مكان
         document.querySelectorAll('.uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
-            // كسر الحماية لجعل السطر يقبل النقر
+            // جعل العناصر شفافة للنقرة
             user.style.setProperty('pointer-events', 'auto', 'important');
             user.style.cursor = "pointer";
-            
-            // جعل الصور والإطارات الداخلية شفافة للنقرة
             user.querySelectorAll('*').forEach(child => {
                 child.style.setProperty('pointer-events', 'none', 'important');
             });
 
-            if (!user._profileBound) {
-                user.addEventListener("click", function(e) {
-                    // إيقاف أوامر الموقع فوراً (منع فتح الخاص)
-                    e.stopImmediatePropagation();
-                    e.stopPropagation();
-                    e.preventDefault();
-
-                    const uidClass = [...user.classList].find(c => c.startsWith("uid"));
-                    const userId = uidClass ? uidClass.slice(3) : null;
-                    
-                    // استدعاء دالة البروفايل
-                    const uprofFunc = window.uprof || (typeof uprof === 'function' ? uprof : null);
-
-                    if (userId && uprofFunc) {
-                        uprofFunc(userId);
-                        console.log("🎯 Gh0sT-KSA: تم فتح بروفايل:", userId);
-                    }
-                }, true); // كلمة true هنا مهمة جداً لسبق الموقع
+            if (!user._bulldozerBound) {
+                // مسح أي أوامر مسبقة وضعها الموقع!
+                user.removeAttribute('onclick');
+                user.removeAttribute('onmousedown');
                 
-                user._profileBound = true;
+                // استخراج المعرف
+                const uidClass = [...user.classList].find(c => c.startsWith("uid"));
+                const userId = uidClass ? uidClass.slice(3) : null;
+
+                // زراعة أمر النقر الخاص بنا مباشرة في عنصر الـ HTML
+                user.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (userId && typeof uprof === 'function') {
+                        uprof(userId);
+                        console.log("🎯 Gh0sT-KSA: تم فتح بروفايل بالقوة:", userId);
+                    }
+                };
+
+                // إبطال مفعول الـ mousedown (حيلة تستخدمها بعض المواقع للهروب من onclick)
+                user.onmousedown = function(e) {
+                    e.stopPropagation();
+                };
+                
+                user._bulldozerBound = true;
             }
         });
     }
@@ -195,5 +207,5 @@ javascript: (function() {
     checkHiddenUsers();
     enableProfileCaptureOnS4();
     
-    console.log("✅ تم التفعيل: نسخة V4.1 جاهزة للعمل بشكل كامل");
+    console.log("✅ تم التفعيل: نسخة V4.2 (تم تدمير حماية النقر بالكامل)");
 })();
