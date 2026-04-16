@@ -82,60 +82,45 @@ javascript: (function() {
                 if (uidClass && !alertedUsers.has(uidClass)) {
                     alertedUsers.add(uidClass);
                     const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
-                    showAlert({ name, pic: "pic/unknown.png", icon: "", hash: "" });
+                    showAlert({ name, pic: "pic/unknown.png", icon: "", hash: uidClass.slice(3) });
                 }
             }
         });
     }
     
-    // 6) الوظيفة المحدثة: محاولة فتح البروفايل "بالقوة"
-    function forceProfileOpen() {
+    // 6) ميزة فتح البروفايل المستخرجة من السكربت الثاني (المطورة)
+    function enableProfileOpenForHidden() {
         document.querySelectorAll('#users .uzr').forEach(user => {
-            const ustat = user.querySelector('img.ustat');
-            if (!ustat || !ustat.src.includes('s4.png')) return;
-
-            if (!user._profileBound) {
-                // جعل العنصر بأكمله يمرر الضغطة للعناصر الداخلية
-                user.style.cursor = "pointer";
-                
-                user.onmousedown = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
+            const img = user.querySelector('img.ustat');
+            // استهداف المخفيين فقط (أصحاب أيقونة s4.png)
+            if (!img || !img.getAttribute('src').includes('s4.png')) return;
+            
+            user.style.cursor = "pointer";
+            if (!user._privateBound) {
+                user.addEventListener("click", function(e) {
+                    e.stopImmediatePropagation();
+                    // استخراج الـ ID من الكلاس
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
-
-                    console.log("🚀 محاولة اختراق لفتح البروفايل للـ ID:", userId);
-
-                    // 1. محاولة استدعاء الدالة العالمية مع تمرير العنصر (مهم جداً في بعض السكريبتات)
-                    if (typeof window.getuser === "function") {
-                        try { window.getuser(user); } catch(err) { window.getuser(userId); }
+                    
+                    // استدعاء دالة النظام الأصلية لفتح البروفايل
+                    if (userId && typeof openw === "function") {
+                        openw(userId);
+                        console.log("✅ تم فتح بروفايل المخفي ID:", userId);
                     }
-
-                    // 2. البحث عن العنصر الذي يحمل حدث الـ click الأصلي في النظام (غالباً الاسم)
-                    const clickableName = user.querySelector('.u-topic, .u-msg, .u-pic');
-                    if (clickableName) {
-                        // إرسال حدث ضغط حقيقي للمتصفح
-                        const clickEvent = new MouseEvent('click', {
-                            view: window,
-                            bubbles: true,
-                            cancelable: true
-                        });
-                        clickableName.dispatchEvent(clickEvent);
-                    }
-                };
-                user._profileBound = true;
+                });
+                user._privateBound = true;
             }
         });
     }
     
-    // 7) مراقبة DOM
+    // 7) مراقبة DOM لضمان عمل المزايا باستمرار
     new MutationObserver(() => {
         showUsers();
         showAllHigherRanksOnlyHidden();
         fixHiddenFrames();
         checkHiddenUsers();
-        forceProfileOpen();
+        enableProfileOpenForHidden();
     }).observe(document.body, { childList: true, subtree: true });
     
     // تشغيل أولي
@@ -143,7 +128,7 @@ javascript: (function() {
     showAllHigherRanksOnlyHidden();
     fixHiddenFrames();
     checkHiddenUsers();
-    forceProfileOpen();
+    enableProfileOpenForHidden();
     
-    console.log("✅ تم التحديث: جرب الضغط الآن (تم استخدام نظام MouseEvent).");
+    console.log("✅ تم دمج ميزة فتح البروفايل للمخفي بنجاح.");
 })();
