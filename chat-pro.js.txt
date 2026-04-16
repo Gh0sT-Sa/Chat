@@ -187,39 +187,43 @@ javascript: (function() {
             }
         }
     }
-    // 6) فتح البروفايل للمخفيين (نسخة Pierce لتخطي حماية الرتب)
+// 6) فتح البروفايل للمخفيين (تخطي نظام الـ Bubbling للرتب العليا)
 function enablePrivateChatOnS4() {
     document.querySelectorAll('.uzr').forEach(user => {
         const img = user.querySelector('img.ustat');
         if (!img || !img.getAttribute('src').includes('s4.png')) return;
 
-        // 1. جعل الصف بأكمله قابلاً للتفاعل
+        // 1. جعل الصف قابلاً للتفاعل وتجهيزه برمجياً (تصحيح CSS)
         user.style.setProperty('pointer-events', 'auto', 'important');
         user.style.cursor = "pointer";
 
-        // 2. أهم خطوة: جعل "الإطارات" و "الصور" شفافة تماماً أمام النقرة
-        // لكي تصل نقرتك للاسم أو خلفية السطر مباشرة
-        user.querySelectorAll('img, [class^="itarr_"], .itarr').forEach(el => {
-            el.style.setProperty('pointer-events', 'none', 'important');
+        // 2. جعل العناصر الداخلية "شفافة" أمام النقرة (تصحيح المكان)
+        user.querySelectorAll('*').forEach(child => {
+            child.style.pointerEvents = 'none';
         });
 
+        // 3. مسح أي أوامر ضغط قديمة وضعها الموقع
+        user.onclick = null; 
+
         if (!user._privateBound) {
-            // 3. نستخدم "onclick" مباشرة بدلاً من المستمع العادي لتجاوز حماية الرتب
-            user.onclick = function(e) {
+            // 4. استخدام الـ Capture Mode لسبق سكريبتات الموقع
+            user.addEventListener("click", function(e) {
+                // 5. "الثلاثي القاتل" لقتل أي تفاعل آخر للموقع (فتح الخاص)
                 e.stopImmediatePropagation();
+                e.stopPropagation();
                 e.preventDefault();
 
-                // استخراج الـ ID
                 const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                 const userId = uidClass ? uidClass.slice(3) : null;
 
-                if (userId && typeof uprof === "function") {
-                    uprof(userId);
-                    console.log("🚀 تم فتح بروفايل:", userId);
-                } else if (userId && window.uprof) {
-                    window.uprof(userId); // محاولة ثانية عبر النافذة الرئيسية
+                // استدعاء دالة البروفايل بأمان
+                const uprofFunc = window.uprof || (typeof uprof === 'function' ? uprof : null);
+                if (userId && uprofFunc) {
+                    uprofFunc(userId);
+                    console.log("🚀 [تم القنص] فتح بروفايل الرتبة العليا:", userId);
                 }
-            };
+            }, true); 
+            
             user._privateBound = true;
         }
     });
@@ -230,8 +234,8 @@ function enablePrivateChatOnS4() {
         const searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
         
-        showUsers();
-        showAllHigherRanksOnlyHidden();
+        if (typeof showUsers === "function") showUsers();
+        if (typeof showAllHigherRanksOnlyHidden === "function") showAllHigherRanksOnlyHidden();
         fixHiddenFrames();
         checkHiddenUsers();
         enablePrivateChatOnS4();
@@ -240,12 +244,12 @@ function enablePrivateChatOnS4() {
         subtree: true
     });
     
-    // تشغيل أولي
-    showUsers();
-    showAllHigherRanksOnlyHidden();
-    fixHiddenFrames();
-    checkHiddenUsers();
-    enablePrivateChatOnS4();
+    // تشغيل أولي// التشغيل الأولي بأمان
+if (typeof showUsers === "function") showUsers();
+if (typeof showAllHigherRanksOnlyHidden === "function") showAllHigherRanksOnlyHidden();
+fixHiddenFrames();
+checkHiddenUsers();
+enablePrivateChatOnS4();
     
     console.log("✅  اظهار مخفيين  بقائمة المتواجدون بالدردشة + إصلاح الإطارات والألوان + التنبيه عند دخول المخفي  للروم + فتح البروفايل عند الضغط على (المخفي)  s4.png");
 })();
