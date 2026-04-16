@@ -18,7 +18,7 @@ javascript: (function() {
     if (!document.getElementById("mobile-toast-container")) {
         const container = document.createElement("div");
         container.id = "mobile-toast-container";
-        container.style = "position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:99999;max-width:320px;text-align:center";
+        container.style = "position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:999999;max-width:320px;text-align:center";
         document.body.appendChild(container);
     }
     
@@ -46,54 +46,34 @@ javascript: (function() {
     // 3) إظهار العناصر المخفية السابقة
     function showAllHigherRanksOnlyHidden() {
         const hiddenSelector = [".uzr[style*='max-height: 0']", ".uzr[style*='max-height:0']"].join(",");
-        document.querySelectorAll(hiddenSelector).forEach(el => el.setAttribute('data-was-hidden', '1'));
-        
-        document.querySelectorAll("[data-was-hidden='1']").forEach(el => {
-            const searchBox = document.getElementById('usearch');
-            if (searchBox && searchBox.value.trim().length > 0) return;
-            
-            if (!el._patched) {
-                const originalAdd = el.classList.add;
-                el.classList.add = function(...args) {
-                    const filtered = args.filter(cls => cls !== '__rv_me');
-                    return originalAdd.apply(this, filtered);
-                };
-                el._patched = true;
-            }
-            
-            if (el.classList.contains('__rv_me')) el.classList.remove('__rv_me');
-            
+        document.querySelectorAll(hiddenSelector).forEach(el => {
+            el.setAttribute('data-was-hidden', '1');
             el.style.display = 'block';
             el.style.maxHeight = 'none';
             el.style.visibility = 'visible';
             el.style.opacity = '1';
-
-            el.querySelectorAll('[style*="display: none"]').forEach(inner => inner.style.display = 'block');
-            
-            const ustat = el.querySelector("img.ustat, img[src*='s0.png'], img[src*='s4.png']");
-            if (ustat) ustat.src = 'imgs/s4.png';
+        });
+        
+        document.querySelectorAll("[data-was-hidden='1']").forEach(el => {
+            if (el.classList.contains('__rv_me')) el.classList.remove('__rv_me');
+            const ustat = el.querySelector("img.ustat");
+            if (ustat && !ustat.src.includes('s4.png')) ustat.src = 'imgs/s4.png';
         });
     }
     
-    // 4) إصلاح الإطارات والألوان
+    // 4) إصلاح الإطارات
     function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
-            const style = window.getComputedStyle(el);
-            if (style.width === '0px' || style.height === '0px') {
-                el.style.width = '';
-                el.style.height = '';
-            }
             ['ahmed', 'mhmood', '__rv_me'].forEach(cls => {
                 if (el.classList.contains(cls)) {
                     el.classList.remove(cls);
-                    el.style.width = '';
-                    el.style.height = '';
+                    el.style.width = ''; el.style.height = '';
                 }
             });
         });
     }
     
-    // 5) فحص المخفيين وإظهار التنبيه
+    // 5) فحص المخفيين
     function checkHiddenUsers() {
         document.querySelectorAll('.uzr.inroom').forEach(userEl => {
             const statusImg = userEl.querySelector('img.ustat');
@@ -102,59 +82,48 @@ javascript: (function() {
                 if (uidClass && !alertedUsers.has(uidClass)) {
                     alertedUsers.add(uidClass);
                     const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
-                    let pic = "pic/unknown.png";
-                    const picDiv = userEl.querySelector('.u-pic');
-                    if (picDiv) {
-                        const bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
-                        const match = bg.match(/url\(["']?(.*?)["']?\)/);
-                        if (match && match[1]) pic = match[1];
-                    }
-                    showAlert({ name, pic, icon: userEl.querySelector('.u-ico')?.src || "", hash: userEl.querySelector('.uhash')?.textContent || "" });
+                    showAlert({ name, pic: "pic/unknown.png", icon: "", hash: "" });
                 }
             }
         });
     }
     
-    // 6) الوظيفة المحدثة: محاكاة فتح البروفايل بأكثر من طريقة
-    function enableProfileOnS4() {
+    // 6) الوظيفة المحدثة: محاولة فتح البروفايل "بالقوة"
+    function forceProfileOpen() {
         document.querySelectorAll('#users .uzr').forEach(user => {
-            const img = user.querySelector('img.ustat');
-            if (!img || !img.getAttribute('src').includes('s4.png')) return;
-            
-            // إضافة ستايل ليعرف المستخدم أن العنصر قابل للضغط
-            user.style.cursor = "pointer";
-            user.style.pointerEvents = "auto"; 
+            const ustat = user.querySelector('img.ustat');
+            if (!ustat || !ustat.src.includes('s4.png')) return;
 
             if (!user._profileBound) {
-                user.addEventListener("click", function(e) {
+                // جعل العنصر بأكمله يمرر الضغطة للعناصر الداخلية
+                user.style.cursor = "pointer";
+                
+                user.onmousedown = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
 
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
 
-                    console.log("🖱️ محاولة فتح بروفايل الـ ID:", userId);
+                    console.log("🚀 محاولة اختراق لفتح البروفايل للـ ID:", userId);
 
-                    // الطريقة 1: استدعاء دالة النظام getuser
-                    if (userId && typeof getuser === "function") {
-                        getuser(userId);
-                        return;
+                    // 1. محاولة استدعاء الدالة العالمية مع تمرير العنصر (مهم جداً في بعض السكريبتات)
+                    if (typeof window.getuser === "function") {
+                        try { window.getuser(user); } catch(err) { window.getuser(userId); }
                     }
 
-                    // الطريقة 2: محاكاة الضغط على الاسم (u-topic)
-                    const topic = user.querySelector('.u-topic');
-                    if (topic) {
-                        topic.click();
-                        return;
+                    // 2. البحث عن العنصر الذي يحمل حدث الـ click الأصلي في النظام (غالباً الاسم)
+                    const clickableName = user.querySelector('.u-topic, .u-msg, .u-pic');
+                    if (clickableName) {
+                        // إرسال حدث ضغط حقيقي للمتصفح
+                        const clickEvent = new MouseEvent('click', {
+                            view: window,
+                            bubbles: true,
+                            cancelable: true
+                        });
+                        clickableName.dispatchEvent(clickEvent);
                     }
-
-                    // الطريقة 3: محاكاة الضغط على الصورة الشخصية
-                    const pic = user.querySelector('.u-pic');
-                    if (pic) {
-                        pic.click();
-                        return;
-                    }
-                }, true); // استخدام capture mode لضمان التقاط الضغطة
+                };
                 user._profileBound = true;
             }
         });
@@ -166,7 +135,7 @@ javascript: (function() {
         showAllHigherRanksOnlyHidden();
         fixHiddenFrames();
         checkHiddenUsers();
-        enableProfileOnS4();
+        forceProfileOpen();
     }).observe(document.body, { childList: true, subtree: true });
     
     // تشغيل أولي
@@ -174,7 +143,7 @@ javascript: (function() {
     showAllHigherRanksOnlyHidden();
     fixHiddenFrames();
     checkHiddenUsers();
-    enableProfileOnS4();
+    forceProfileOpen();
     
-    console.log("✅ جاهز: الضغط على المخفي سيحاول فتح البروفايل بكل الطرق.");
+    console.log("✅ تم التحديث: جرب الضغط الآن (تم استخدام نظام MouseEvent).");
 })();
