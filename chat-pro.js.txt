@@ -1,241 +1,147 @@
-console.log("Gh0sT-KSA Overseer V3.7 | نظام الرقابة الشامل مفعل");
+console.log("Gh0sT-KSA Chameleon V3.8 | نظام الألوان والرصد الموحد");
 
 (function() {
     const alertedUsers = new Set();
 
-    // 1) حقن CSS "الرؤية النافذة" - لكسر كافة طبقات الإخفاء
+    // 1) حقن CSS الألوان الذكي (نظام الألوان الذي طلبته)
     const styleEl = document.createElement('style');
     styleEl.innerHTML = `
-        /* إجبار ظهور أي عنصر يحمل وسم المراقب مهما كانت رتبته */
-        .uzr[data-overseer="true"] { 
-            display: block !important; 
-            max-height: none !important; 
-            visibility: visible !important; 
-            opacity: 1 !important;
-            height: auto !important;
-            position: relative !important;
-            transform: none !important;
-            z-index: 999 !important;
+        /* الحالة الافتراضية للرتب المخفية s4 (الأزرق) */
+        .uzr[data-status="hidden"] { 
+            display: block !important; max-height: none !important; visibility: visible !important; opacity: 1 !important;
+            border-right: 4px solid #3498db !important; background: rgba(52, 152, 219, 0.05);
         }
-        /* كسر حماية العناصر الداخلية ومنعها من خطف النقرة */
-        .uzr[data-overseer="true"] * { pointer-events: none !important; }
-        #overseer-toast-container { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:999999; width: 320px; }
-    `;
-    document.head.appendChild(styleEl);
-
-    // 2) وظيفة استخراج البيانات المتقدمة
-    function getUserInfo(el) {
-        const picDiv = el.querySelector('.u-pic');
-        let pic = "pic/unknown.png";
-        if (picDiv) {
-            let bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
-            let match = bg.match(/url\(["']?(.*?)["']?\)/);
-            if (match && match[1]) pic = match[1];
-        }
-        return {
-            name: el.getAttribute("n") || "مستخدِم",
-            pic: pic,
-            hash: el.querySelector('.uhash')?.textContent || "---",
-            isInMyRoom: el.classList.contains('inroom') // التحقق هل هو في غرفتي فعلياً؟
-        };
-    }
-
-    // 3) اعتراض نظام الموقع (فتح البروفايل للرتب العليا)
-    const originalOpenw = window.openw;
-    window.openw = function(id, isPrivate) {
-        const userEl = document.querySelector(`.uid${id}`);
-        const isS4 = userEl && userEl.querySelector('img.ustat[src*="s4.png"]');
-        if (isS4) {
-            console.log("🎯 Overseer: قنص بروفايل المعرف:", id);
-            if (typeof uprof === 'function') return uprof(id);
-            if (window.uprof) return window.uprof(id);
-        }
-        if (originalOpenw) return originalOpenw.apply(this, arguments);
-    };
-
-    // 4) نظام التنبيهات الذكي (يفرق بين اللوبي والغرفة)
-    function sendAlert(user) {
-        let container = document.getElementById("overseer-toast-container");
-        if (!container) {
-            container = document.createElement("div");
-            container.id = "overseer-toast-container";
-            document.body.appendChild(container);
-        }
-        const t = document.createElement("div");
-        t.style = "background:#fff; border-right:6px solid #2980b9; padding:15px; margin-bottom:10px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); direction:rtl; font-family:sans-serif; animation: slideDown 0.4s ease;";
+        /* الحالة: مغلق الخاص (الأحمر) */
+        .uzr[data-status="private-closed"] { border-right: 4px solid #e74c3c !important; }
         
-        // تغيير النص بناءً على مكانه (في الغرفة أم في الدردشة العامة)
-        const locationText = user.isInMyRoom ? "قام بالدخول لغرفتك الآن ⚡" : "متواجد حالياً في الدردشة 🔍";
-        const borderColor = user.isInMyRoom ? "#c0392b" : "#2980b9";
-        t.style.borderRightColor = borderColor;
-
-        t.innerHTML = `
-            <div style="display:flex; align-items:center; gap:12px;">
-                <img src="${user.pic}" style="width:50px; height:50px; border-radius:50%; border:2px solid ${borderColor}; object-fit:cover;">
-                <div style="flex-grow:1">
-                    <div style="font-weight:bold; color:#2c3e50; font-size:14px;">${user.name}</div>
-                    <div style="font-size:11px; color:#7f8c8d;">UID: <span style="color:${borderColor}">${user.hash}</span></div>
-                    <div style="font-size:12px; color:${user.isInMyRoom ? '#c0392b' : '#34495e'}; font-weight:bold; margin-top:3px;">${locationText}</div>
-                </div>
-            </div>
-        `;
-        container.appendChild(t);
-        setTimeout(() => { t.style.opacity = "0"; t.style.transition = "0.5s"; setTimeout(() => t.remove(), 500); }, 6000);
-    }
-
-    // 5) المحرك النووي (إجبار ظهور الرتب العليا وتصحيح الرصد)
-    function scanner() {
-        document.querySelectorAll(".uzr").forEach(el => {
-            const img = el.querySelector('img.ustat');
-            const isS4 = img && img.src.includes('s4.png');
-            
-            if (isS4) {
-                // وسم المراقب لإجبار الظهور (حتى للرتب العليا)
-                el.setAttribute('data-overseer', 'true');
-                el.classList.remove('__rv_me', 'me', 'hidden'); // كسر كلاسات الإخفاء البرمجية
-                
-                // إجبار الأبناء (الاسم والأيقونات) على الظهور
-                el.querySelectorAll('*').forEach(child => {
-                    child.style.setProperty('display', 'inline-block', 'important');
-                    child.style.setProperty('visibility', 'visible', 'important');
-                });
-
-                // رصد الدخول والتنبيه
-                const uidClass = [...el.classList].find(c => c.startsWith('uid'));
-                if (uidClass && !alertedUsers.has(uidClass)) {
-                    const data = getUserInfo(el);
-                    alertedUsers.add(uidClass);
-                    sendAlert(data);
-                }
-            }
-        });
-    }
-
-    // تشغيل المحرك
-    setInterval(scanner, 1000);
-
-    // رسالة الترحيب
-    const welcome = document.createElement("div");
-    welcome.style = "position:fixed; bottom:25px; left:25px; background:#2c3e50; color:white; padding:15px; border-radius:10px; z-index:999999; direction:rtl; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.5); border-right: 5px solid #2980b9;";
-    welcome.innerHTML = "📡 <b>Gh0sT-KSA V3.7 [Overseer]</b><br><span style='font-size:12px; font-weight:normal;'>✔️ تم تصحيح رصد الغرف<br>✔️ كسر حماية الرتب العليا مفعل</span>";
-    document.body.appendChild(welcome);
-    setTimeout(() => welcome.remove(), 5000);
-
-})();console.log("Gh0sT-KSA Sentinel V3.6 | نسخة الرصد والتحكم الكامل");
-
-(function() {
-    const alertedUsers = new Set();
-
-    // 1) حقن CSS فائق القوة (لإظهار الرتب العليا وتنسيق التنبيه)
-    const styleEl = document.createElement('style');
-    styleEl.innerHTML = `
-        .uzr[data-sentinel="true"] { 
-            display: block !important; 
-            max-height: none !important; 
-            visibility: visible !important; 
-            opacity: 1 !important;
-            height: auto !important;
-            border-left: 4px solid #c0392b !important;
+        /* تنسيق عام لقائمة المتواجدين لسهولة التمييز */
+        .uzr[data-ghost="true"] * { pointer-events: none !important; }
+        
+        /* حاوية التنبيهات الموحدة */
+        #ghost-alert-container { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:1000000; width: 320px; }
+        .ghost-toast { 
+            background:#fff; border-right:6px solid #3498db; padding:15px; margin-bottom:10px; border-radius:12px; 
+            box-shadow:0 8px 25px rgba(0,0,0,0.3); direction:rtl; font-family:sans-serif; cursor:pointer;
+            animation: slideIn 0.3s ease; transition: 0.3s;
         }
-        .uzr[data-sentinel="true"] * { pointer-events: none !important; }
-        #sentinel-toast-container { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:999999; width: 300px; }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     `;
     document.head.appendChild(styleEl);
 
-    // 2) استخراج البيانات (صورة + رقم عضوية)
-    function getUserData(el) {
-        const picDiv = el.querySelector('.u-pic');
-        let pic = "pic/unknown.png";
-        if (picDiv) {
-            let bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
-            let match = bg.match(/url\(["']?(.*?)["']?\)/);
-            if (match && match[1]) pic = match[1];
+    // 2) محرك فحص الحالة والألوان
+    function applyColorLogic(el) {
+        const ustat = el.querySelector('img.ustat');
+        if (!ustat) return;
+
+        const src = ustat.src;
+        const isS4 = src.includes('s4.png'); // مخفي
+        const isClosedPrivate = el.querySelector('.u-topic.p-closed, .u-topic[style*="color: red"]') || el.classList.contains('private-off'); 
+
+        if (isS4) {
+            el.setAttribute('data-status', 'hidden');
+            el.style.color = "#3498db"; // اسم المخفي باللون الأزرق
+        } else if (isClosedPrivate) {
+            el.setAttribute('data-status', 'private-closed');
+            el.style.color = "#e74c3c"; // اسم مغلق الخاص بالأحمر
         }
-        const hash = el.querySelector('.uhash')?.textContent || "---";
-        const name = el.getAttribute("n") || "مستخدِم";
-        return { name, pic, hash };
+        
+        // الألوان الأساسية الأخرى
+        if (src.includes('s1.png')) el.style.borderRight = "4px solid #2ecc71"; // أخضر (نشط)
+        if (src.includes('s2.png')) el.style.borderRight = "4px solid #f1c40f"; // أصفر (خامل)
+        if (src.includes('s0.png')) el.style.borderRight = "4px solid #95a5a6"; // رمادي (خرج/معلق)
     }
 
-    // 3) اعتراض نظام الموقع (فتح البروفايل للجميع)
+    // 3) نظام التنبيه الموحد (بضغطة واحدة للإغلاق)
+    function showSingleAlert(user) {
+        let container = document.getElementById("ghost-alert-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "ghost-alert-container";
+            document.body.appendChild(container);
+        }
+
+        const t = document.createElement("div");
+        t.className = "ghost-toast";
+        t.onclick = () => t.remove(); // إغلاق بضغطة واحدة
+        
+        const locText = user.isInRoom ? "دخل لغرفتك الآن 🚪⚡" : "متواجد في الدردشة (مخفي) 🔍";
+        const themeColor = user.isInRoom ? "#e74c3c" : "#3498db";
+        t.style.borderRightColor = themeColor;
+
+        t.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${user.pic}" style="width:45px; height:45px; border-radius:50%; border:2px solid ${themeColor}; object-fit:cover;">
+                <div style="flex-grow:1">
+                    <div style="font-weight:bold; color:#2c3e50; font-size:14px;">${user.name}</div>
+                    <div style="font-size:11px; color:#7f8c8d;">رقم العضوية: <span style="color:${themeColor}">${user.hash}</span></div>
+                    <div style="font-size:12px; color:${themeColor}; font-weight:bold;">${locText}</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(t);
+        setTimeout(() => { if(t) t.remove(); }, 7000);
+    }
+
+    // 4) اعتراض نظام الموقع (فتح البروفايل)
     const originalOpenw = window.openw;
-    window.openw = function(id, isPrivate) {
+    window.openw = function(id) {
         const userEl = document.querySelector(`.uid${id}`);
-        const isS4 = userEl && userEl.querySelector('img.ustat[src*="s4.png"]');
-        if (isS4) {
-            console.log("🎯 Sentinel: قنص بروفايل الرتبة:", id);
+        if (userEl && userEl.querySelector('img.ustat[src*="s4.png"]')) {
             if (typeof uprof === 'function') return uprof(id);
             if (window.uprof) return window.uprof(id);
         }
         if (originalOpenw) return originalOpenw.apply(this, arguments);
     };
 
-    // 4) نظام التنبيهات المكتمل (الاسم + UID + الحالة)
-    function notify(user) {
-        let container = document.getElementById("sentinel-toast-container");
-        if (!container) {
-            container = document.createElement("div");
-            container.id = "sentinel-toast-container";
-            document.body.appendChild(container);
-        }
-        const t = document.createElement("div");
-        t.style = "background:#fff; border-right:6px solid #c0392b; padding:15px; margin-bottom:10px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.3); direction:rtl; font-family:sans-serif; animation: slideIn 0.4s ease;";
-        t.innerHTML = `
-            <div style="display:flex; align-items:center; gap:12px;">
-                <img src="${user.pic}" style="width:45px; height:45px; border-radius:50%; border:2px solid #c0392b; object-fit:cover;">
-                <div style="flex-grow:1">
-                    <div style="font-weight:bold; color:#2c3e50; font-size:14px;">${user.name}</div>
-                    <div style="font-size:11px; color:#7f8c8d; margin:2px 0;">رقم العضوية: <span style="color:#c0392b">${user.hash}</span></div>
-                    <div style="font-size:12px; color:#27ae60; font-weight:bold;">قام بالدخول للغرفة مخفياً 🚪⚡</div>
-                </div>
-            </div>
-        `;
-        container.appendChild(t);
-        setTimeout(() => { t.style.opacity = "0"; t.style.transition = "0.5s"; setTimeout(() => t.remove(), 500); }, 6000);
-    }
-
-    // 5) محرك "Sentinel" الفائق (كشف كافة الرتب العليا المخفية)
-    function sentinelScan() {
-        // نستخدم Selector أكثر عدوانية ليشمل أي عنصر مخفي
+    // 5) المحرك الشامل لفك حماية الرتب العليا
+    function chameleonScan() {
         document.querySelectorAll(".uzr").forEach(el => {
-            const img = el.querySelector('img.ustat');
-            const isS4 = img && img.src.includes('s4.png');
+            const ustat = el.querySelector('img.ustat');
+            const isS4 = ustat && ustat.src.includes('s4.png');
             
             if (isS4) {
-                // إجبار الظهور لجميع الرتب (حتى لو كانت محذوفة من العرض بـ __rv_me)
+                // إظهار الرتب العليا مهما كانت وسيلة الإخفاء
                 el.style.setProperty('display', 'block', 'important');
                 el.style.setProperty('max-height', 'none', 'important');
-                el.style.setProperty('height', 'auto', 'important');
-                el.classList.remove('__rv_me', 'me'); // حذف الكلاسات التي تستخدمها الرتب العليا للاختفاء
-                el.setAttribute('data-sentinel', 'true');
+                el.classList.remove('__rv_me', 'me', 'hidden');
+                el.setAttribute('data-ghost', 'true');
                 
-                // إظهار المحتوى الداخلي (الأسماء والأيقونات)
-                el.querySelectorAll('*').forEach(child => {
-                    const style = window.getComputedStyle(child);
-                    if (style.display === 'none' || style.visibility === 'hidden') {
-                        child.style.setProperty('display', 'inline-block', 'important');
-                        child.style.setProperty('visibility', 'visible', 'important');
-                    }
-                });
+                // تطبيق نظام الألوان
+                applyColorLogic(el);
 
-                // رصد الدخول (التنبيه الكامل)
-                const uidClass = [...el.classList].find(c => c.startsWith('uid'));
-                if (uidClass && !alertedUsers.has(uidClass)) {
-                    alertedUsers.add(uidClass);
-                    notify(getUserData(el));
+                // التنبيه (منع التكرار)
+                const uid = [...el.classList].find(c => c.startsWith('uid'));
+                if (uid && !alertedUsers.has(uid)) {
+                    alertedUsers.add(uid);
+                    
+                    const picDiv = el.querySelector('.u-pic');
+                    let pic = "pic/unknown.png";
+                    if (picDiv) {
+                        let bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
+                        let match = bg.match(/url\(["']?(.*?)["']?\)/);
+                        if (match && match[1]) pic = match[1];
+                    }
+
+                    showSingleAlert({
+                        name: el.getAttribute("n") || "مخفي",
+                        hash: el.querySelector('.uhash')?.textContent || "---",
+                        pic: pic,
+                        isInRoom: el.classList.contains('inroom')
+                    });
                 }
+            } else {
+                // تطبيق الألوان للأعضاء العاديين أيضاً
+                applyColorLogic(el);
             }
         });
     }
 
-    // التشغيل الدوري (كل ثانية لضمان الرصد)
-    setInterval(sentinelScan, 1000);
+    setInterval(chameleonScan, 1000);
 
-    // رسالة التفعيل
+    // رسالة الترحيب
     const welcome = document.createElement("div");
-    welcome.style = "position:fixed; bottom:25px; right:25px; background:#2c3e50; color:white; padding:18px; border-radius:15px; z-index:999999; direction:rtl; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.5); border-left: 5px solid #c0392b;";
-    welcome.innerHTML = "🛡️ <b>Gh0sT-KSA V3.6 [Sentinel]</b><br><span style='font-size:12px; font-weight:normal;'>✔️ كشف شامل للرتب العليا<br>✔️ نظام التنبيهات التفصيلي مفعل</span>";
+    welcome.style = "position:fixed; bottom:25px; left:25px; background:#2c3e50; color:white; padding:15px; border-radius:10px; z-index:999999; direction:rtl; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.5); border-right: 5px solid #3498db;";
+    welcome.innerHTML = "🦎 <b>Gh0sT-KSA V3.8 [Chameleon]</b><br><span style='font-size:12px; font-weight:normal;'>✔️ نظام الألوان الموحد يعمل<br>✔️ إغلاق التنبيه بضغطة واحدة</span>";
     document.body.appendChild(welcome);
     setTimeout(() => welcome.remove(), 5000);
-
 })();
