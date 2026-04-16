@@ -1,3 +1,5 @@
+console.log("تم تشغيل النسخة رقم 2.0 المعدلة");
+
 @@ -29,17 +29,17 @@ javascript: (function() {
 
         toast.onclick = () => toast.remove();
