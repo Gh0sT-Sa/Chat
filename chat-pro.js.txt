@@ -1,12 +1,19 @@
-console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر النهائي)");
+javascript: (function() {
+    console.log("Gh0sT-KSA V4.3 | النسخة الخداعية (Shape-Shifter)");
 
-(function() {
-    // 1) إجبار المتصفح على مسح الألوان الجانبية
+    // 1) منع تكرار التشغيل والتنبيهات المزدوجة
+    if (window.ghostKsaActive) {
+        window.ghostObserver && window.ghostObserver.disconnect();
+    }
+    window.ghostKsaActive = true;
+    window.alertedGhosts = window.alertedGhosts || new Set();
+
+    // 2) إجبار المتصفح على مسح الألوان الجانبية
     const fixStyle = document.createElement('style');
     fixStyle.innerHTML = `.uzr { border-right: none !important; border-left: none !important; }`;
     document.head.appendChild(fixStyle);
 
-    // 2) إظهار الأزرار وإزالة الإطارات
+    // 3) إظهار الأزرار وإزالة الإطارات
     function showUsers() {
         document.querySelectorAll('.btn').forEach(el => el.style.display = 'block');
         document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
@@ -21,7 +28,7 @@ console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر
         }
     }
     
-    // 3) حاوية التنبيهات
+    // 4) حاوية التنبيهات
     if (!document.getElementById("mobile-toast-container")) {
         const container = document.createElement("div");
         container.id = "mobile-toast-container";
@@ -29,12 +36,10 @@ console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر
         document.body.appendChild(container);
     }
     
-    const alertedUsers = new Set();
-    
     // إظهار التنبيه
     function showAlert(user) {
         const toast = document.createElement("div");
-        toast.onclick = () => toast.remove(); // إغلاق بضغطة واحدة
+        toast.onclick = () => toast.remove(); 
         toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:left;animation: slideDown 0.3s ease;";
         toast.innerHTML = `
           <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه</div>
@@ -52,7 +57,7 @@ console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر
         setTimeout(() => toast.remove(), 6000); 
     }
     
-    // 4) إظهار العناصر المخفية (كشف الجميع)
+    // 5) إظهار العناصر المخفية (كشف الجميع)
     function showAllHigherRanksOnlyHidden() {
         document.querySelectorAll('.uzr').forEach(el => {
             const isHiddenStyle = el.style.maxHeight === '0px' || el.style.display === 'none';
@@ -78,7 +83,7 @@ console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر
         });
     }
     
-    // 5) إصلاح الإطارات والألوان
+    // 6) إصلاح الإطارات والألوان
     function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
             const style = window.getComputedStyle(el);
@@ -107,15 +112,16 @@ console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر
         document.querySelectorAll(".uzr.custom-alaw").forEach(el => el.classList.remove("custom-alaw"));
     }
     
-    // 6) فحص المخفيين لمنع التكرار
+    // 7) فحص المخفيين (تم القضاء على التكرار النهائي)
     function checkHiddenUsers() {
         document.querySelectorAll('.uzr.inroom').forEach(userEl => {
             const statusImg = userEl.querySelector('img.ustat');
             if (statusImg && statusImg.src.includes('s4.png')) {
                 const uidClass = [...userEl.classList].find(c => c.startsWith('uid'));
+                const userId = uidClass ? uidClass.slice(3) : null;
                 
-                if (uidClass && !alertedUsers.has(uidClass)) {
-                    alertedUsers.add(uidClass); 
+                if (userId && !window.alertedGhosts.has(userId)) {
+                    window.alertedGhosts.add(userId); 
                     
                     const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
                     let pic = "pic/unknown.png";
@@ -135,61 +141,38 @@ console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر
             }
         });
     }
-
-    // [إضافة أمنية]: اعتراض دالة الخاص (openw) وتحويلها لبروفايل للمخفيين
-    const originalOpenw = window.openw;
-    window.openw = function(id, isPrivate) {
-        const userEl = document.querySelector(`.uid${id}`);
-        if (userEl && userEl.querySelector('img.ustat[src*="s4.png"]')) {
-            if (typeof uprof === 'function') return uprof(id);
-        }
-        if (originalOpenw) return originalOpenw.apply(this, arguments);
-    };
     
-    // 7) فتح البروفايل "البلدوزر" (مسح أوامر الموقع وفرض أوامرنا)
+    // 8) الحيلة الخداعية لفتح بروفايلات الرتب العليا (Shape-Shifter)
     function enableProfileCaptureOnS4() {
         document.querySelectorAll('.uzr').forEach(user => {
-            const img = user.querySelector('img.ustat');
-            if (!img || !img.getAttribute('src').includes('s4.png')) return;
-            
-            // جعل العناصر شفافة للنقرة
-            user.style.setProperty('pointer-events', 'auto', 'important');
-            user.style.cursor = "pointer";
-            user.querySelectorAll('*').forEach(child => {
-                child.style.setProperty('pointer-events', 'none', 'important');
-            });
-
-            if (!user._bulldozerBound) {
-                // مسح أي أوامر مسبقة وضعها الموقع!
-                user.removeAttribute('onclick');
-                user.removeAttribute('onmousedown');
-                
-                // استخراج المعرف
-                const uidClass = [...user.classList].find(c => c.startsWith("uid"));
-                const userId = uidClass ? uidClass.slice(3) : null;
-
-                // زراعة أمر النقر الخاص بنا مباشرة في عنصر الـ HTML
-                user.onclick = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (userId && typeof uprof === 'function') {
-                        uprof(userId);
-                        console.log("🎯 Gh0sT-KSA: تم فتح بروفايل بالقوة:", userId);
+            if (!user._shapeShifterBound) {
+                // بمجرد ضغط الماوس، نقوم بخداع السكريبت الأصلي وتغيير رتبة المستخدم لمستخدم عادي
+                user.addEventListener('mousedown', function(e) {
+                    const img = user.querySelector('img.ustat');
+                    if (img && img.src.includes('s4.png')) {
+                        user.setAttribute('data-temp-s4', 'true');
+                        img.src = 'imgs/s1.png'; // الصورة العادية التي يسمح الموقع بفتح بروفايلها
                     }
-                };
+                }, true);
 
-                // إبطال مفعول الـ mousedown (حيلة تستخدمها بعض المواقع للهروب من onclick)
-                user.onmousedown = function(e) {
-                    e.stopPropagation();
-                };
-                
-                user._bulldozerBound = true;
+                // بعد النقر، نعيد صورته كمخفي بسرعة
+                window.addEventListener('mouseup', function(e) {
+                    setTimeout(() => {
+                        if (user.hasAttribute('data-temp-s4')) {
+                            const img = user.querySelector('img.ustat');
+                            if (img) img.src = 'imgs/s4.png';
+                            user.removeAttribute('data-temp-s4');
+                        }
+                    }, 50); // تأخير بسيط لضمان تنفيذ أمر البروفايل أولاً
+                }, true);
+
+                user._shapeShifterBound = true;
             }
         });
     }
     
-    // 8) مراقبة DOM
-    new MutationObserver(() => {
+    // 9) مراقبة DOM الشاملة
+    window.ghostObserver = new MutationObserver(() => {
         const searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
         
@@ -198,7 +181,9 @@ console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر
         fixHiddenFrames();
         checkHiddenUsers();
         enableProfileCaptureOnS4();
-    }).observe(document.body, { childList: true, subtree: true });
+    });
+    
+    window.ghostObserver.observe(document.body, { childList: true, subtree: true });
     
     // تشغيل أولي
     showUsers();
@@ -207,5 +192,11 @@ console.log("Gh0sT-KSA V4.2 | النسخة الحاسمة (إصلاح النقر
     checkHiddenUsers();
     enableProfileCaptureOnS4();
     
-    console.log("✅ تم التفعيل: نسخة V4.2 (تم تدمير حماية النقر بالكامل)");
+    // رسالة تأكيد بدون أي أخطاء
+    const startupToast = document.createElement("div");
+    startupToast.style = "background:#2ecc71; color:white; padding:10px 20px; border-radius:5px; position:fixed; bottom:20px; right:20px; z-index:100000; font-family:sans-serif; font-weight:bold;";
+    startupToast.innerText = "🚀 تم تشغيل سكريبت الخداع بنجاح!";
+    document.body.appendChild(startupToast);
+    setTimeout(() => startupToast.remove(), 4000);
+
 })();
