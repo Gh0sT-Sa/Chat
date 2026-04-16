@@ -45,14 +45,8 @@ javascript: (function() {
     
     // 3) إظهار العناصر المخفية السابقة
     function showAllHigherRanksOnlyHidden() {
-        const hiddenSelector = [
-            ".uzr[style*='max-height: 0']",
-            ".uzr[style*='max-height:0']"
-        ].join(",");
-        
-        document.querySelectorAll(hiddenSelector).forEach(el => {
-            el.setAttribute('data-was-hidden', '1');
-        });
+        const hiddenSelector = [".uzr[style*='max-height: 0']", ".uzr[style*='max-height:0']"].join(",");
+        document.querySelectorAll(hiddenSelector).forEach(el => el.setAttribute('data-was-hidden', '1'));
         
         document.querySelectorAll("[data-was-hidden='1']").forEach(el => {
             const searchBox = document.getElementById('usearch');
@@ -67,40 +61,17 @@ javascript: (function() {
                 el._patched = true;
             }
             
-            if (el.classList.contains('__rv_me')) {
-                el.classList.remove('__rv_me');
-            }
+            if (el.classList.contains('__rv_me')) el.classList.remove('__rv_me');
             
             el.style.display = 'block';
             el.style.maxHeight = 'none';
-            el.querySelectorAll('[style*="display: none"]').forEach(inner => {
-                inner.style.display = 'block';
-            });
+            el.style.visibility = 'visible';
+            el.style.opacity = '1';
+
+            el.querySelectorAll('[style*="display: none"]').forEach(inner => inner.style.display = 'block');
             
             const ustat = el.querySelector("img.ustat, img[src*='s0.png'], img[src*='s4.png']");
             if (ustat) ustat.src = 'imgs/s4.png';
-            
-            const nameAttr = el.getAttribute('n');
-            const nameSpan = el.querySelector('.u-topic');
-            if (nameSpan && nameSpan.textContent.trim() === '') {
-                if (nameAttr && nameAttr.trim() !== '') {
-                    nameSpan.textContent = nameAttr;
-                } else {
-                    const orig = nameSpan.getAttribute('data-original');
-                    if (orig) nameSpan.textContent = orig;
-                }
-            }
-            
-            const pic = el.querySelector('.u-pic');
-            if (pic) {
-                const origPic = pic.getAttribute('data-original-pic');
-                if (origPic) {
-                    pic.style.backgroundImage = `url("${origPic}")`;
-                } else {
-                    const fallback = el.getAttribute('data-pic');
-                    if (fallback) pic.style.backgroundImage = `url("${fallback}")`;
-                }
-            }
         });
     }
     
@@ -112,19 +83,6 @@ javascript: (function() {
                 el.style.width = '';
                 el.style.height = '';
             }
-            
-            const frameImg = el.querySelector('.u-pic img[class^="itarr_"]');
-            if (frameImg) {
-                frameImg.classList.forEach(cls => {
-                    if (cls.startsWith('itarr_')) {
-                        const frameName = cls.replace('itarr_', '').toLowerCase();
-                        if (el.classList.contains(frameName)) {
-                            el.classList.remove(frameName);
-                        }
-                    }
-                });
-            }
-            
             ['ahmed', 'mhmood', '__rv_me'].forEach(cls => {
                 if (el.classList.contains(cls)) {
                     el.classList.remove(cls);
@@ -132,19 +90,6 @@ javascript: (function() {
                     el.style.height = '';
                 }
             });
-            
-            const topic = el.querySelector('.u-topic');
-            if (topic) {
-                const bg = window.getComputedStyle(topic).backgroundColor;
-                const color = window.getComputedStyle(topic).color;
-                if (bg === color) {
-                    topic.style.color = '#000';
-                }
-            }
-        });
-        
-        document.querySelectorAll(".uzr.custom-alaw").forEach(el => {
-            el.classList.remove("custom-alaw");
         });
     }
     
@@ -157,87 +102,79 @@ javascript: (function() {
                 if (uidClass && !alertedUsers.has(uidClass)) {
                     alertedUsers.add(uidClass);
                     const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
-                    
                     let pic = "pic/unknown.png";
                     const picDiv = userEl.querySelector('.u-pic');
                     if (picDiv) {
                         const bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
                         const match = bg.match(/url\(["']?(.*?)["']?\)/);
-                        if (match && match[1]) {
-                            pic = match[1].startsWith('http') ? match[1] : window.location.origin + '/' + match[1].replace(/^\/+/, '');
-                        }
+                        if (match && match[1]) pic = match[1];
                     }
-                    
-                    const icon = userEl.querySelector('.u-ico')?.src || "";
-                    const hash = userEl.querySelector('.uhash')?.textContent || "";
-                    showAlert({
-                        name,
-                        pic,
-                        icon,
-                        hash
-                    });
+                    showAlert({ name, pic, icon: userEl.querySelector('.u-ico')?.src || "", hash: userEl.querySelector('.uhash')?.textContent || "" });
                 }
             }
         });
-        
-        for (const uid of alertedUsers) {
-            if (!document.querySelector(`.uzr.inroom.${uid} img.ustat[src*="s4.png"]`)) {
-                alertedUsers.delete(uid);
-            }
-        }
     }
     
-    // 6) التعديل المطلوب: فتح البروفايل عند الضغط على أصحاب s4.png
-    function enablePrivateChatOnS4() {
+    // 6) الوظيفة المحدثة: محاكاة فتح البروفايل بأكثر من طريقة
+    function enableProfileOnS4() {
         document.querySelectorAll('#users .uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
+            // إضافة ستايل ليعرف المستخدم أن العنصر قابل للضغط
             user.style.cursor = "pointer";
+            user.style.pointerEvents = "auto"; 
+
             if (!user._profileBound) {
                 user.addEventListener("click", function(e) {
+                    e.preventDefault();
                     e.stopPropagation();
+
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
-                    
-                    // محاولة فتح البروفايل باستخدام الدالة getuser أو الضغط التلقائي على الصورة
+
+                    console.log("🖱️ محاولة فتح بروفايل الـ ID:", userId);
+
+                    // الطريقة 1: استدعاء دالة النظام getuser
                     if (userId && typeof getuser === "function") {
                         getuser(userId);
-                        console.log("👤 تم فتح بروفايل المستخدم:", userId);
-                    } else if (user.querySelector('.u-pic')) {
-                        // كخطة بديلة: الضغط البرمجي على الصورة لفتح الملف الشخصي
-                        user.querySelector('.u-pic').click();
-                        console.log("👤 تم الضغط على الصورة لفتح البروفايل");
-                    } else {
-                        console.warn("❌ لم يتم العثور على طريقة لفتح البروفايل");
+                        return;
                     }
-                });
-                user._profileBound = true; 
+
+                    // الطريقة 2: محاكاة الضغط على الاسم (u-topic)
+                    const topic = user.querySelector('.u-topic');
+                    if (topic) {
+                        topic.click();
+                        return;
+                    }
+
+                    // الطريقة 3: محاكاة الضغط على الصورة الشخصية
+                    const pic = user.querySelector('.u-pic');
+                    if (pic) {
+                        pic.click();
+                        return;
+                    }
+                }, true); // استخدام capture mode لضمان التقاط الضغطة
+                user._profileBound = true;
             }
         });
     }
     
     // 7) مراقبة DOM
     new MutationObserver(() => {
-        const searchBox = document.getElementById('usearch');
-        if (searchBox && searchBox.value.trim().length > 0) return;
-        
         showUsers();
         showAllHigherRanksOnlyHidden();
         fixHiddenFrames();
         checkHiddenUsers();
-        enablePrivateChatOnS4();
-    }).observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+        enableProfileOnS4();
+    }).observe(document.body, { childList: true, subtree: true });
     
     // تشغيل أولي
     showUsers();
     showAllHigherRanksOnlyHidden();
     fixHiddenFrames();
     checkHiddenUsers();
-    enablePrivateChatOnS4();
+    enableProfileOnS4();
     
-    console.log("✅ تم التفعيل: الضغط على المخفي يفتح البروفايل الآن.");
+    console.log("✅ جاهز: الضغط على المخفي سيحاول فتح البروفايل بكل الطرق.");
 })();
