@@ -1,5 +1,5 @@
 javascript: (function() {
-    // 1) إظهار الأزرار وإزالة الإطارات (بما فيها الإضافات البرمجية للنظام)
+    // 1) إظهار الأزرار وإزالة الإطارات
     function showUsers() {
         document.querySelectorAll('.btn').forEach(el => el.style.display = 'block');
         document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
@@ -8,19 +8,19 @@ javascript: (function() {
             _ma56zznz2.forEach(obj => {
                 document.querySelectorAll(`.${obj.cls}`).forEach(el => {
                     el.classList.remove(obj.cls);
-                    el.style.setProperty('display', 'block', 'important');
+                    el.style.display = 'block';
                 });
             });
         }
     }
     
-    // 2) حاوية التنبيهات (التصميم الاحترافي - الصورة 1)
+    // 2) حاوية التنبيهات (التنسيق الأصلي المطلوب)
     var toastContainer = document.getElementById("mobile-toast-container") || (function() {
-        const c = document.createElement("div");
-        c.id = "mobile-toast-container";
-        c.style = "position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:9999999;width:300px;display:flex;flex-direction:column;gap:8px;pointer-events:none;";
-        document.body.appendChild(c);
-        return c;
+        const container = document.createElement("div");
+        container.id = "mobile-toast-container";
+        container.style = "position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:999999;max-width:320px;text-align:center";
+        document.body.appendChild(container);
+        return container;
     })();
     
     const alertedUsers = new Set();
@@ -28,26 +28,25 @@ javascript: (function() {
     function showAlert(user) {
         const toast = document.createElement("div");
         toast.onclick = () => toast.remove();
-        // تنسيق الصورة 1: خلفية فاتحة، إطار داكن، وظل ناعم
-        toast.style = "background:#f9f9f9;border:2px solid #333;border-right:6px solid #555;border-radius:12px;padding:12px;box-shadow:0 4px 15px rgba(0,0,0,0.3);cursor:pointer;text-align:right;direction:rtl;pointer-events:auto;animation: slideIn 0.3s ease-out;";
-        
+        // ستايل التنبيه الأصلي 100%
+        toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:left";
         toast.innerHTML = `
-          <div style="font-weight:bold;text-align:center;margin-bottom:8px;border-bottom:1px solid #ddd;padding-bottom:5px">🔔 تنبيه دخول</div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <img src="${user.pic}" style="width:40px;height:40px;border-radius:50%;border:1px solid #ccc;object-fit:cover">
+          <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
+            ${user.icon ? `<img src="${user.icon}" style="height:20px">` : ""}
             <div style="flex-grow:1">
-              <div style="font-weight:bold;font-size:14px;color:#000">${user.name}</div>
-              <div style="font-size:11px;color:#666">ID: ${user.hash}</div>
+              <div style="font-weight:bold">${user.name}</div>
+              <div style="font-size:12px;color:gray">${user.hash}</div>
             </div>
-            ${user.icon ? `<img src="${user.icon}" style="height:22px">` : ""}
           </div>
-          <div style="margin-top:10px;padding:6px;background:#eee;border-radius:6px;text-align:center;font-size:12px;font-weight:bold;color:#d9534f">دخل مخفي للروم</div>
+          <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold">دخل مخفي للروم</div>
         `;
         toastContainer.appendChild(toast);
         setTimeout(() => { if(toast) toast.remove(); }, 10000);
     }
     
-    // 3) إظهار المخفيين (إصلاح مشكلة الاختفاء عند الضغط)
+    // 3) إظهار العناصر المخفية (إجبار الظهور بالـ !important)
     function showAllHigherRanksOnlyHidden() {
         const hiddenSelector = [".uzr[style*='max-height: 0']", ".uzr[style*='max-height:0']", ".uzr.hid"].join(",");
         document.querySelectorAll(hiddenSelector).forEach(el => {
@@ -77,7 +76,7 @@ javascript: (function() {
         });
     }
     
-    // 5) فحص المخفيين والتنبيه
+    // 5) فحص المخفيين
     function checkHiddenUsers() {
         document.querySelectorAll('.uzr.inroom').forEach(userEl => {
             const statusImg = userEl.querySelector('img.ustat');
@@ -85,7 +84,7 @@ javascript: (function() {
                 const uidClass = [...userEl.classList].find(c => c.startsWith('uid'));
                 if (uidClass && !alertedUsers.has(uidClass)) {
                     alertedUsers.add(uidClass);
-                    const name = userEl.querySelector('.u-topic')?.innerText || userEl.getAttribute("n") || "عضو مخفي";
+                    const name = userEl.querySelector('.u-topic')?.innerText || "عضو مخفي";
                     const pic = userEl.querySelector('.u-pic')?.src || "pic/unknown.png";
                     showAlert({ name, pic, icon: "", hash: uidClass.slice(3) });
                 }
@@ -93,43 +92,41 @@ javascript: (function() {
         });
     }
     
-    // 6) فتح البروفايل (الميزة المعدلة لمنع اختفاء الشخص)
+    // 6) فتح البروفايل (باستخدام دالة getuser لفتح الملف الشخصي)
     function enableProfileOpenForHidden() {
         document.querySelectorAll('#users .uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
-            if (!user._privateBound) {
+            if (!user._profileBound) {
                 user.style.cursor = "pointer";
                 user.addEventListener("click", function(e) {
-                    // منع أي وظيفة أخرى للمتصفح أو الموقع قد تسبب إخفاء العضو
                     e.preventDefault();
-                    e.stopImmediatePropagation();
+                    e.stopPropagation();
                     
-                    const uidClass = [...user.classList].find(c => c.startsWith("uid"));
-                    const userId = uidClass ? uidClass.slice(3) : null;
-                    
-                    if (userId && typeof openw === "function") {
-                        openw(userId);
-                        // إعادة تأكيد الظهور بعد الضغط للتأكد من عدم اختفائه
-                        user.style.setProperty('display', 'block', 'important');
+                    // استخراج العنصر أو الـ ID لاستدعاء البروفايل
+                    if (typeof window.getuser === "function") {
+                        window.getuser(user); // استدعاء البروفايل الأصلي للنظام
+                    } else if (typeof window.openw === "function") {
+                        const uidClass = [...user.classList].find(c => c.startsWith("uid"));
+                        const userId = uidClass ? uidClass.slice(3) : null;
+                        window.openw(userId);
                     }
-                }, true); // استخدام خاصية الـ capture لضمان الأولوية
-                user._privateBound = true;
+                }, true);
+                user._privateBound = true; // منع التكرار
+                user._profileBound = true;
             }
         });
     }
     
-    // 7) المراقبة والتشغيل
-    const observer = new MutationObserver(() => {
+    // 7) مراقبة DOM
+    new MutationObserver(() => {
         showUsers();
         showAllHigherRanksOnlyHidden();
         fixHiddenFrames();
         checkHiddenUsers();
         enableProfileOpenForHidden();
-    });
-    
-    observer.observe(document.body, { childList: true, subtree: true });
+    }).observe(document.body, { childList: true, subtree: true });
     
     // تشغيل أولي
     showUsers();
@@ -138,5 +135,5 @@ javascript: (function() {
     checkHiddenUsers();
     enableProfileOpenForHidden();
     
-    console.log("✅ تم الإصلاح: التنبيهات مطابقة للصورة 1 + منع اختفاء العضو عند الضغط.");
+    console.log("✅ تم التعديل: التنبيهات أصلية + ميزة فتح البروفايل مفعلة.");
 })();
