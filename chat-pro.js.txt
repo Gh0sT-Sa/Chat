@@ -1,7 +1,12 @@
-console.log("Gh0sT-KSA | النسخة الأساسية المعدلة لفتح البروفايلات");
+console.log("Gh0sT-KSA V4.0 | النسخة الأساسية المطورة (إصلاح الرتب والتكرار)");
 
 javascript: (function() {
-    // 1) إظهار الأزرار وإزالة الإطارات
+    // 1) إجبار المتصفح على مسح الألوان الجانبية (بناءً على ملاحظتك)
+    const fixStyle = document.createElement('style');
+    fixStyle.innerHTML = `.uzr { border-right: none !important; border-left: none !important; }`;
+    document.head.appendChild(fixStyle);
+
+    // 2) إظهار الأزرار وإزالة الإطارات
     function showUsers() {
         document.querySelectorAll('.btn').forEach(el => el.style.display = 'block');
         document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
@@ -16,7 +21,7 @@ javascript: (function() {
         }
     }
     
-    // 2) حاوية التنبيهات
+    // 3) حاوية التنبيهات
     if (!document.getElementById("mobile-toast-container")) {
         const container = document.createElement("div");
         container.id = "mobile-toast-container";
@@ -26,140 +31,96 @@ javascript: (function() {
     
     const alertedUsers = new Set();
     
+    // إظهار التنبيه بالتنسيق الذي طلبته
     function showAlert(user) {
         const toast = document.createElement("div");
-        toast.onclick = () => toast.remove();
-        toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:left";
+        toast.onclick = () => toast.remove(); // إغلاق بضغطة واحدة
+        toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:left;animation: slideDown 0.3s ease;";
         toast.innerHTML = `
           <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه</div>
           <div style="display:flex;align-items:center;gap:8px">
-            <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
+            <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc;object-fit:cover;">
             ${user.icon ? `<img src="${user.icon}" style="height:20px">` : ""}
             <div style="flex-grow:1">
               <div style="font-weight:bold">${user.name}</div>
               <div style="font-size:12px;color:gray">${user.hash}</div>
             </div>
           </div>
-          <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold">دخل مخفي للروم</div>
+          <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold;color:#c0392b;">دخل مخفي للروم</div>
         `;
         document.getElementById("mobile-toast-container").appendChild(toast);
+        setTimeout(() => toast.remove(), 6000); // يختفي تلقائياً
     }
     
-    // 3) إظهار العناصر المخفية السابقة (الحيلة التي تظهر الرتب العليا)
+    // 4) إظهار العناصر المخفية (الهجوم الشامل لإظهار الرتب العليا)
     function showAllHigherRanksOnlyHidden() {
-        const hiddenSelector = [
-            ".uzr[style*='max-height: 0']",
-            ".uzr[style*='max-height:0']"
-        ].join(",");
-        
-        document.querySelectorAll(hiddenSelector).forEach(el => {
-            el.setAttribute('data-was-hidden', '1');
-        });
-        
-        document.querySelectorAll("[data-was-hidden='1']").forEach(el => {
-            const searchBox = document.getElementById('usearch');
-            if (searchBox && searchBox.value.trim().length > 0) return;
-            
-            if (!el._patched) {
-                const originalAdd = el.classList.add;
-                el.classList.add = function(...args) {
-                    const filtered = args.filter(cls => cls !== '__rv_me');
-                    return originalAdd.apply(this, filtered);
-                };
-                el._patched = true;
-            }
-            
-            if (el.classList.contains('__rv_me')) {
-                el.classList.remove('__rv_me');
-            }
-            
-            el.style.display = 'block';
-            el.style.maxHeight = 'none';
-            el.querySelectorAll('[style*="display: none"]').forEach(inner => {
-                inner.style.display = 'block';
-            });
-            
-            const ustat = el.querySelector("img.ustat, img[src*='s0.png'], img[src*='s4.png']");
-            if (ustat) ustat.src = 'imgs/s4.png';
-            
-            const nameAttr = el.getAttribute('n');
-            const nameSpan = el.querySelector('.u-topic');
-            if (nameSpan && nameSpan.textContent.trim() === '') {
-                if (nameAttr && nameAttr.trim() !== '') {
-                    nameSpan.textContent = nameAttr;
-                } else {
-                    const orig = nameSpan.getAttribute('data-original');
-                    if (orig) nameSpan.textContent = orig;
-                }
-            }
-            
-            const pic = el.querySelector('.u-pic');
-            if (pic) {
-                const origPic = pic.getAttribute('data-original-pic');
-                if (origPic) {
-                    pic.style.backgroundImage = `url("${origPic}")`;
-                } else {
-                    const fallback = el.getAttribute('data-pic');
-                    if (fallback) pic.style.backgroundImage = `url("${fallback}")`;
+        // بدلاً من البحث عن max-height فقط، نبحث عن أي يوزر لديه أيقونة s4 أو كلاسات الإخفاء
+        document.querySelectorAll('.uzr').forEach(el => {
+            const isHiddenStyle = el.style.maxHeight === '0px' || el.style.display === 'none';
+            const hasS4 = el.querySelector('img.ustat[src*="s4.png"]');
+            const hasHiddenClass = el.classList.contains('__rv_me') || el.classList.contains('me');
+
+            // إذا كان مخفياً بأي طريقة، أخرجه للعلن
+            if (isHiddenStyle || hasS4 || hasHiddenClass) {
+                el.style.setProperty('display', 'block', 'important');
+                el.style.setProperty('max-height', 'none', 'important');
+                el.style.setProperty('height', 'auto', 'important');
+                el.style.setProperty('opacity', '1', 'important');
+                el.classList.remove('__rv_me', 'me');
+                
+                el.querySelectorAll('[style*="display: none"]').forEach(inner => {
+                    inner.style.setProperty('display', 'block', 'important');
+                });
+                
+                const ustat = el.querySelector("img.ustat, img[src*='s0.png']");
+                if (ustat && !ustat.src.includes('s4.png') && (hasHiddenClass || isHiddenStyle)) {
+                    ustat.src = 'imgs/s4.png';
                 }
             }
         });
     }
     
-    // 4) إصلاح الإطارات والألوان
+    // 5) إصلاح الإطارات والألوان
     function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
             const style = window.getComputedStyle(el);
             if (style.width === '0px' || style.height === '0px') {
-                el.style.width = '';
-                el.style.height = '';
+                el.style.width = ''; el.style.height = '';
             }
-            
             const frameImg = el.querySelector('.u-pic img[class^="itarr_"]');
             if (frameImg) {
                 frameImg.classList.forEach(cls => {
                     if (cls.startsWith('itarr_')) {
                         const frameName = cls.replace('itarr_', '').toLowerCase();
-                        if (el.classList.contains(frameName)) {
-                            el.classList.remove(frameName);
-                        }
+                        if (el.classList.contains(frameName)) el.classList.remove(frameName);
                     }
                 });
             }
-            
             ['ahmed', 'mhmood', '__rv_me'].forEach(cls => {
-                if (el.classList.contains(cls)) {
-                    el.classList.remove(cls);
-                    el.style.width = '';
-                    el.style.height = '';
-                }
+                if (el.classList.contains(cls)) { el.classList.remove(cls); el.style.width = ''; el.style.height = ''; }
             });
-            
             const topic = el.querySelector('.u-topic');
             if (topic) {
                 const bg = window.getComputedStyle(topic).backgroundColor;
                 const color = window.getComputedStyle(topic).color;
-                if (bg === color) {
-                    topic.style.color = '#000';
-                }
+                if (bg === color) topic.style.color = '#000';
             }
         });
-        
-        document.querySelectorAll(".uzr.custom-alaw").forEach(el => {
-            el.classList.remove("custom-alaw");
-        });
+        document.querySelectorAll(".uzr.custom-alaw").forEach(el => el.classList.remove("custom-alaw"));
     }
     
-    // 5) فحص المخفيين وإظهار التنبيه
+    // 6) فحص المخفيين (تم حل مشكلة التكرار المزعج)
     function checkHiddenUsers() {
         document.querySelectorAll('.uzr.inroom').forEach(userEl => {
             const statusImg = userEl.querySelector('img.ustat');
             if (statusImg && statusImg.src.includes('s4.png')) {
                 const uidClass = [...userEl.classList].find(c => c.startsWith('uid'));
+                
+                // إذا لم يتم التنبيه عنه من قبل، أرسل تنبيهاً
                 if (uidClass && !alertedUsers.has(uidClass)) {
-                    alertedUsers.add(uidClass);
-                    const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
+                    alertedUsers.add(uidClass); // تسجيله لكي لا يتكرر
                     
+                    const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
                     let pic = "pic/unknown.png";
                     const picDiv = userEl.querySelector('.u-pic');
                     if (picDiv) {
@@ -169,43 +130,31 @@ javascript: (function() {
                             pic = match[1].startsWith('http') ? match[1] : window.location.origin + '/' + match[1].replace(/^\/+/, '');
                         }
                     }
-                    
                     const icon = userEl.querySelector('.u-ico')?.src || "";
                     const hash = userEl.querySelector('.uhash')?.textContent || "";
-                    showAlert({
-                        name,
-                        pic,
-                        icon,
-                        hash
-                    });
+                    
+                    showAlert({ name, pic, icon, hash });
+                    
+                    // حذفنا كود التكرار الذي كان يمسح المستخدمين من السجل فوراً
                 }
             }
         });
-        
-        for (const uid of alertedUsers) {
-            if (!document.querySelector(`.uzr.inroom.${uid} img.ustat[src*="s4.png"]`)) {
-                alertedUsers.delete(uid);
-            }
-        }
     }
     
-    // 6) [التعديل هنا] فتح البروفايل عند الضغط على المخفيين لجميع الرتب
+    // 7) فتح البروفايل عند الضغط على المخفيين لجميع الرتب
     function enableProfileCaptureOnS4() {
         document.querySelectorAll('#users .uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
-            // كسر حماية الرتب العليا وجعل السطر قابل للضغط
             user.style.setProperty('pointer-events', 'auto', 'important');
             user.style.cursor = "pointer";
             
-            // منع العناصر الداخلية من اعتراض الضغطة لضمان وصولها للكود
             user.querySelectorAll('*').forEach(child => {
                 child.style.setProperty('pointer-events', 'none', 'important');
             });
 
             if (!user._profileBound) {
-                // استخدام Capture Phase (true) لسبق أوامر الموقع التي تفتح الخاص
                 user.addEventListener("click", function(e) {
                     e.stopImmediatePropagation();
                     e.stopPropagation();
@@ -213,24 +162,20 @@ javascript: (function() {
 
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
-                    
-                    // استدعاء دالة فتح البروفايل
                     const uprofFunc = window.uprof || (typeof uprof === 'function' ? uprof : null);
 
                     if (userId && uprofFunc) {
                         uprofFunc(userId);
                         console.log("🎯 Gh0sT-KSA: تم فتح بروفايل المخفي:", userId);
-                    } else {
-                        console.warn("❌ لم يتم العثور على دالة البروفايل");
                     }
-                }, true); // الـ true هنا هي التي تعطل الخاص وتجبر البروفايل
+                }, true);
                 
                 user._profileBound = true;
             }
         });
     }
     
-    // 7) مراقبة DOM
+    // 8) مراقبة DOM
     new MutationObserver(() => {
         const searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
@@ -239,18 +184,15 @@ javascript: (function() {
         showAllHigherRanksOnlyHidden();
         fixHiddenFrames();
         checkHiddenUsers();
-        enableProfileCaptureOnS4(); // تم التغيير للاسم الجديد
-    }).observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+        enableProfileCaptureOnS4();
+    }).observe(document.body, { childList: true, subtree: true });
     
     // تشغيل أولي
     showUsers();
     showAllHigherRanksOnlyHidden();
     fixHiddenFrames();
     checkHiddenUsers();
-    enableProfileCaptureOnS4(); // تم التغيير للاسم الجديد
+    enableProfileCaptureOnS4();
     
-    console.log("✅ تم التفعيل بنجاح: إظهار كافة الرتب المخفية + فتح البروفايل للجميع");
+    console.log("✅ تم التفعيل: نسخة V4.0 المحدثة بدون تكرار للتنبيهات");
 })();
