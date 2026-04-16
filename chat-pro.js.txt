@@ -1,16 +1,19 @@
-console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل + خاص)");
+console.log("Gh0sT-KSA V4.7 | التوازن المثالي (يسار طبيعي + يمين مدمر)");
 
 (function() {
+    // 1) منع التكرار وتجهيز الذاكرة
     if (window.ghostKsaActive) {
         window.ghostObserver && window.ghostObserver.disconnect();
     }
     window.ghostKsaActive = true;
     window.alertedGhosts = window.alertedGhosts || new Set();
 
+    // 2) مسح الألوان الجانبية
     const fixStyle = document.createElement('style');
-    fixStyle.innerHTML = `.uzr { border-right: none !important; border-left: none !important; } .uzr img[src*="s4.png"] { cursor: crosshair !important; }`;
+    fixStyle.innerHTML = `.uzr { border-right: none !important; border-left: none !important; }`;
     document.head.appendChild(fixStyle);
 
+    // 3) إظهار الأزرار والأسماء
     function showUsers() {
         document.querySelectorAll('.btn').forEach(el => el.style.display = 'block');
         document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
@@ -23,6 +26,7 @@ console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل 
         }
     }
     
+    // 4) حاوية التنبيهات
     if (!document.getElementById("mobile-toast-container")) {
         const container = document.createElement("div");
         container.id = "mobile-toast-container";
@@ -50,6 +54,7 @@ console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل 
         setTimeout(() => toast.remove(), 6000); 
     }
     
+    // 5) كشف الرتب العليا
     function showAllHigherRanksOnlyHidden() {
         document.querySelectorAll('.uzr').forEach(el => {
             const isHiddenStyle = el.style.maxHeight === '0px' || el.style.display === 'none';
@@ -75,6 +80,7 @@ console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل 
         });
     }
     
+    // 6) إصلاح الإطارات
     function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
             const style = window.getComputedStyle(el);
@@ -103,6 +109,7 @@ console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل 
         document.querySelectorAll(".uzr.custom-alaw").forEach(el => el.classList.remove("custom-alaw"));
     }
     
+    // 7) فحص التنبيهات
     function checkHiddenUsers() {
         document.querySelectorAll('.uzr.inroom').forEach(userEl => {
             const statusImg = userEl.querySelector('img.ustat');
@@ -132,38 +139,21 @@ console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل 
         });
     }
 
-    // 8) الاستغلال المزدوج (Dual Exploit)
+    // 8) الاستغلال المزدوج المعدل (اليسار طبيعي - اليمين خاص)
     function enableDualExploit() {
         document.querySelectorAll('.uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.src.includes('s4.png')) return;
             
+            // قمنا بإزالة الحظر عن الأزرار الداخلية لكي يعمل الكليك اليسار الخاص بالموقع بشكل طبيعي!
             user.style.setProperty('pointer-events', 'auto', 'important');
-            user.style.cursor = "crosshair";
-            user.querySelectorAll('*').forEach(child => {
-                child.style.setProperty('pointer-events', 'none', 'important');
-            });
+            user.style.cursor = "pointer";
 
             if (!user._dualBound) {
+                // الكليك اليسار: تركناه ليعمل كما برمجته إدارة الموقع (سيفتح للمستويات الأقل ويرفض المستويات العليا)
+                // لم نعد نعترض الكليك اليسار أبداً.
                 
-                // الاستغلال الأول: الضغطة العادية تحاول فتح البروفايل عبر تنفيذ الكود الأصلي
-                user.addEventListener("click", function(e) {
-                    e.stopImmediatePropagation();
-                    e.preventDefault();
-                    
-                    const picEl = user.querySelector('.u-pic');
-                    if (picEl) {
-                        const nativeClick = picEl.getAttribute('onclick');
-                        if (nativeClick) {
-                            try {
-                                eval(nativeClick); // تنفيذ كود الموقع الحرفي
-                                console.log("🎯 محاولة فتح البروفايل تمت.");
-                            } catch(err) {}
-                        }
-                    }
-                }, true);
-
-                // الاستغلال الثاني: الضغطة بالزر الأيمن (أو المطولة) تفتح الخاص بالقوة
+                // الكليك اليمين (أو الضغطة المطولة): ثغرتنا المدمرة لفتح الخاص للجميع!
                 user.addEventListener("contextmenu", function(e) {
                     e.stopImmediatePropagation();
                     e.preventDefault();
@@ -173,7 +163,7 @@ console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل 
                     
                     if (userId && typeof window.openw === 'function') {
                         window.openw(userId, true);
-                        console.log("🔥 تم استغلال ثغرة الخاص مع:", userId);
+                        console.log("🔥 تم استغلال ثغرة الخاص بنجاح مع المعرف:", userId);
                     }
                 }, true);
                 
@@ -182,6 +172,7 @@ console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل 
         });
     }
     
+    // 9) المراقبة
     window.ghostObserver = new MutationObserver(() => {
         const searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
@@ -201,9 +192,10 @@ console.log("Gh0sT-KSA V4.6 | الاستغلال المزدوج (بروفايل 
     checkHiddenUsers();
     enableDualExploit();
     
+    // رسالة التفعيل
     const startupToast = document.createElement("div");
-    startupToast.style = "background:#c0392b; color:white; padding:12px 25px; border-radius:8px; position:fixed; bottom:20px; right:20px; z-index:100000; font-family:sans-serif; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.3); border-right: 4px solid #fff; direction: rtl;";
-    startupToast.innerHTML = "⚔️ <b>Gh0sT-KSA V4.6</b><br>يسار للبروفايل | يمين (مطول) للخاص";
+    startupToast.style = "background:#27ae60; color:white; padding:12px 25px; border-radius:8px; position:fixed; bottom:20px; right:20px; z-index:100000; font-family:sans-serif; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.3); border-right: 4px solid #fff; direction: rtl;";
+    startupToast.innerHTML = "⚖️ <b>Gh0sT-KSA V4.7</b><br>يسار: بروفايل طبيعي | يمين: خاص إجباري";
     document.body.appendChild(startupToast);
     setTimeout(() => startupToast.remove(), 4000);
 
