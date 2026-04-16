@@ -1,309 +1,238 @@
 console.log("تم تشغيل النسخة رقم 2.0 المعدلة");
-
-@@ -29,17 +29,17 @@ javascript: (function() {
-
-        toast.onclick = () => toast.remove();
-
-        toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:left";
-
-        toast.innerHTML = `
-
-      <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه</div>
-
-      <div style="display:flex;align-items:center;gap:8px">
-
-        <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
-
-        ${user.icon ? `<img src="${user.icon}" style="height:20px">` : ""}
-
-        <div style="flex-grow:1">
-
-          <div style="font-weight:bold">${user.name}</div>
-
-          <div style="font-size:12px;color:gray">${user.hash}</div>
-
-        </div>
-
-      </div>
-
-      <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold">دخل مخفي للروم</div>
-
-    `;
-
-          <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه</div>
-
-          <div style="display:flex;align-items:center;gap:8px">
-
-            <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
-
-            ${user.icon ? `<img src="${user.icon}" style="height:20px">` : ""}
-
-            <div style="flex-grow:1">
-
-              <div style="font-weight:bold">${user.name}</div>
-
-              <div style="font-size:12px;color:gray">${user.hash}</div>
-
-            </div>
-
-          </div>
-
-          <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold">دخل مخفي للروم</div>
-
-        `;
-
-        document.getElementById("mobile-toast-container").appendChild(toast);
-
-    }
-
-
-
-@@ -58,7 +58,6 @@ javascript: (function() {
-
-            const searchBox = document.getElementById('usearch');
-
-            if (searchBox && searchBox.value.trim().length > 0) return;
-
-
-
-            // منع إضافة الكلاس __rv_me نهائياً
-
-            if (!el._patched) {
-
-                const originalAdd = el.classList.add;
-
-                el.classList.add = function(...args) {
-
-@@ -68,7 +67,6 @@ javascript: (function() {
-
-                el._patched = true;
-
-            }
-
-
-
-            // إزالة الكلاس إذا كان موجوداً بالفعل
-
-            if (el.classList.contains('__rv_me')) {
-
-                el.classList.remove('__rv_me');
-
-            }
-
-@@ -106,9 +104,7 @@ javascript: (function() {
-
-        });
-
-    }
-
-
-
-    
-
-    
-
-    // 4) إصلاح الإطارات والألوان بشكل شامل
-
-    // 4) إصلاح الإطارات والألوان
-
-    function fixHiddenFrames() {
-
-        document.querySelectorAll('.uzr').forEach(el => {
-
-            const style = window.getComputedStyle(el);
-
-@@ -129,23 +125,13 @@ javascript: (function() {
-
-                });
-
-            }
-
-
-
-            if (el.classList.contains('ahmed')) {
-
-                el.classList.remove('ahmed');
-
-                el.style.width = '';
-
-                el.style.height = '';
-
-            }
-
-            
-
-            if (el.classList.contains('mhmood')) {
-
-                el.classList.remove('mhmood');
-
-                el.style.width = '';
-
-                el.style.height = '';
-
-            }
-
-            
-
-            if (el.classList.contains('__rv_me')) {
-
-                el.classList.remove('__rv_me');
-
-                el.style.width = '';
-
-                el.style.height = '';
-
-            }
-
-            ['ahmed', 'mhmood', '__rv_me'].forEach(cls => {
-
-                if (el.classList.contains(cls)) {
-
-                    el.classList.remove(cls);
-
-                    el.style.width = '';
-
-                    el.style.height = '';
-
-                }
-
-            });
-
-
-
-            const topic = el.querySelector('.u-topic');
-
-            if (topic) {
-
-@@ -157,13 +143,11 @@ javascript: (function() {
-
-            }
-
-        });
-
-
-
-        // ⭐ إزالة الكلاس custom-alaw ليظهروا كلهم بنفس اللون الأزرق
-
-        document.querySelectorAll(".uzr.custom-alaw").forEach(el => {
-
-            el.classList.remove("custom-alaw");
-
-        });
-
-    }
-
-
-
-    
-
-    // 5) فحص المخفيين وإظهار التنبيه
-
-    function checkHiddenUsers() {
-
-        document.querySelectorAll('.uzr.inroom').forEach(userEl => {
-
-@@ -203,7 +187,31 @@ javascript: (function() {
-
-        }
-
-    }
-
-
-
-    // 6) مراقبة DOM
-
-    // 6) إضافة فتح البروفايل للاشخاص المخفيين  s4.png
-
-    function enablePrivateChatOnS4() {
-
-        document.querySelectorAll('#users .uzr').forEach(user => {
-
-            const img = user.querySelector('img.ustat');
-
-            if (!img || !img.getAttribute('src').includes('s4.png')) return;
-
-            
-
-            user.style.cursor = "pointer";
-
-            if (!user._privateBound) {
-
-                user.addEventListener("click", function(e) {
-
-                    e.stopPropagation();
-
-                    const uidClass = [...user.classList].find(c => c.startsWith("uid"));
-
-                    const userId = uidClass ? uidClass.slice(3) : null;
-
-                    if (userId && typeof uprof === "function") {
-
-
-                        uprof(userId);
-
-                        console.log("✅ تم فتح البروفايل مع:", userId);
-
-                    } else {
-
-                        console.warn("❌ لم يتم العثور على uid أو الدالة غير موجودة");
-
-                    }
-
-                });
-
-                user._privateBound = true; // منع تكرار الحدث
-
-            }
-
-        });
-
-    }
-
-    
-
-    // 7) مراقبة DOM
-
-    new MutationObserver(() => {
-
-        const searchBox = document.getElementById('usearch');
-
-        if (searchBox && searchBox.value.trim().length > 0) return;
-
-@@ -212,15 +220,18 @@ javascript: (function() {
-
-        if (typeof showAllHigherRanksOnlyHidden === "function") showAllHigherRanksOnlyHidden();
-
-        fixHiddenFrames();
-
-        checkHiddenUsers();
-
-        enablePrivateChatOnS4();
-
-    }).observe(document.body, {
-
-        childList: true,
-
-        subtree: true
-
-    });
-
-
-
-    // تشغيل أولي
-
-    if (typeof showUsers === "function") showUsers();
-    if (typeof showAllHigherRanksOnlyHidden === "function") showAllHigherRanksOnlyHidden();
-
-    fixHiddenFrames();
-
-    checkHiddenUsers();
-
-    enablePrivateChatOnS4();
-
-
-
-    console.log("✅ تم التفعيل: إظهار الأزرار + المخفيين + إصلاح جميع الإطارات والألوان (بما فيها ahmed + mhmood) + تنبيه مع اختفاء تلقائي.");
-
-    console.log("✅ تم التفعيل: إظهار الأزرار + المخفيين + إصلاح الإطارات والألوان + تنبيه + فتح الخاص عند الضغط على أصحاب s4.png");
-
-})(); 
+javascript: (function() {
+    // 1) إظهار الأزرار وإزالة الإطارات
+    function showUsers() {
+        document.querySelectorAll('.btn').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
+        
+        if (typeof _ma56zznz2 !== 'undefined' && Array.isArray(_ma56zznz2)) {
+            _ma56zznz2.forEach(obj => {
+                document.querySelectorAll(`.${obj.cls}`).forEach(el => {
+                    el.classList.remove(obj.cls);
+                    el.style.display = 'block';
+                });
+            });
+        }
+    }
+    
+    // 2) حاوية التنبيهات
+    if (!document.getElementById("mobile-toast-container")) {
+        const container = document.createElement("div");
+        container.id = "mobile-toast-container";
+        container.style = "position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:99999;max-width:320px;text-align:center";
+        document.body.appendChild(container);
+    }
+    
+    const alertedUsers = new Set();
+    
+    function showAlert(user) {
+        const toast = document.createElement("div");
+        toast.onclick = () => toast.remove();
+        toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:left";
+        toast.innerHTML = `
+          <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
+            ${user.icon ? `<img src="${user.icon}" style="height:20px">` : ""}
+            <div style="flex-grow:1">
+              <div style="font-weight:bold">${user.name}</div>
+              <div style="font-size:12px;color:gray">${user.hash}</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold">دخل مخفي للروم</div>
+        `;
+        document.getElementById("mobile-toast-container").appendChild(toast);
+    }
+    
+    // 3) إظهار العناصر المخفية السابقة
+    function showAllHigherRanksOnlyHidden() {
+        const hiddenSelector = [
+            ".uzr[style*='max-height: 0']",
+            ".uzr[style*='max-height:0']"
+        ].join(",");
+        
+        document.querySelectorAll(hiddenSelector).forEach(el => {
+            el.setAttribute('data-was-hidden', '1');
+        });
+        
+        document.querySelectorAll("[data-was-hidden='1']").forEach(el => {
+            const searchBox = document.getElementById('usearch');
+            if (searchBox && searchBox.value.trim().length > 0) return;
+            
+            if (!el._patched) {
+                const originalAdd = el.classList.add;
+                el.classList.add = function(...args) {
+                    const filtered = args.filter(cls => cls !== '__rv_me');
+                    return originalAdd.apply(this, filtered);
+                };
+                el._patched = true;
+            }
+            
+            if (el.classList.contains('__rv_me')) {
+                el.classList.remove('__rv_me');
+            }
+            
+            el.style.display = 'block';
+            el.style.maxHeight = 'none';
+            el.querySelectorAll('[style*="display: none"]').forEach(inner => {
+                inner.style.display = 'block';
+            });
+            
+            const ustat = el.querySelector("img.ustat, img[src*='s0.png'], img[src*='s4.png']");
+            if (ustat) ustat.src = 'imgs/s4.png';
+            
+            const nameAttr = el.getAttribute('n');
+            const nameSpan = el.querySelector('.u-topic');
+            if (nameSpan && nameSpan.textContent.trim() === '') {
+                if (nameAttr && nameAttr.trim() !== '') {
+                    nameSpan.textContent = nameAttr;
+                } else {
+                    const orig = nameSpan.getAttribute('data-original');
+                    if (orig) nameSpan.textContent = orig;
+                }
+            }
+            
+            const pic = el.querySelector('.u-pic');
+            if (pic) {
+                const origPic = pic.getAttribute('data-original-pic');
+                if (origPic) {
+                    pic.style.backgroundImage = `url("${origPic}")`;
+                } else {
+                    const fallback = el.getAttribute('data-pic');
+                    if (fallback) pic.style.backgroundImage = `url("${fallback}")`;
+                }
+            }
+        });
+    }
+    
+    // 4) إصلاح الإطارات والألوان
+    function fixHiddenFrames() {
+        document.querySelectorAll('.uzr').forEach(el => {
+            const style = window.getComputedStyle(el);
+            if (style.width === '0px' || style.height === '0px') {
+                el.style.width = '';
+                el.style.height = '';
+            }
+            
+            const frameImg = el.querySelector('.u-pic img[class^="itarr_"]');
+            if (frameImg) {
+                frameImg.classList.forEach(cls => {
+                    if (cls.startsWith('itarr_')) {
+                        const frameName = cls.replace('itarr_', '').toLowerCase();
+                        if (el.classList.contains(frameName)) {
+                            el.classList.remove(frameName);
+                        }
+                    }
+                });
+            }
+            
+            ['ahmed', 'mhmood', '__rv_me'].forEach(cls => {
+                if (el.classList.contains(cls)) {
+                    el.classList.remove(cls);
+                    el.style.width = '';
+                    el.style.height = '';
+                }
+            });
+            
+            const topic = el.querySelector('.u-topic');
+            if (topic) {
+                const bg = window.getComputedStyle(topic).backgroundColor;
+                const color = window.getComputedStyle(topic).color;
+                if (bg === color) {
+                    topic.style.color = '#000';
+                }
+            }
+        });
+        
+        document.querySelectorAll(".uzr.custom-alaw").forEach(el => {
+            el.classList.remove("custom-alaw");
+        });
+    }
+    
+    // 5) فحص المخفيين وإظهار التنبيه
+    function checkHiddenUsers() {
+        document.querySelectorAll('.uzr.inroom').forEach(userEl => {
+            const statusImg = userEl.querySelector('img.ustat');
+            if (statusImg && statusImg.src.includes('s4.png')) {
+                const uidClass = [...userEl.classList].find(c => c.startsWith('uid'));
+                if (uidClass && !alertedUsers.has(uidClass)) {
+                    alertedUsers.add(uidClass);
+                    const name = userEl.getAttribute("n")?.trim() || "بدون اسم";
+                    
+                    let pic = "pic/unknown.png";
+                    const picDiv = userEl.querySelector('.u-pic');
+                    if (picDiv) {
+                        const bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
+                        const match = bg.match(/url\(["']?(.*?)["']?\)/);
+                        if (match && match[1]) {
+                            pic = match[1].startsWith('http') ? match[1] : window.location.origin + '/' + match[1].replace(/^\/+/, '');
+                        }
+                    }
+                    
+                    const icon = userEl.querySelector('.u-ico')?.src || "";
+                    const hash = userEl.querySelector('.uhash')?.textContent || "";
+                    showAlert({
+                        name,
+                        pic,
+                        icon,
+                        hash
+                    });
+                }
+            }
+        });
+        
+        for (const uid of alertedUsers) {
+            if (!document.querySelector(`.uzr.inroom.${uid} img.ustat[src*="s4.png"]`)) {
+                alertedUsers.delete(uid);
+            }
+        }
+    }
+    
+    // 6) إضافة فتح  البروفايل عند الضغط على أصحاب المخفيين s4.png
+    function enablePrivateChatOnS4() {
+        document.querySelectorAll('#users .uzr').forEach(user => {
+            const img = user.querySelector('img.ustat');
+            if (!img || !img.getAttribute('src').includes('s4.png')) return;
+            
+            user.style.cursor = "pointer";
+            if (!user._privateBound) {
+                user.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    const uidClass = [...user.classList].find(c => c.startsWith("uid"));
+                    const userId = uidClass ? uidClass.slice(3) : null;
+                    if (userId && typeof uprof === "function") {
+                        uprof(userId);
+                        console.log("✅ تم فتح البروفايل للمستخدم:", userId);
+                    } else {
+                        console.warn("❌ لم يتم العثور على uid أو الدالة غير موجودة");
+                    }
+                });
+                user._privateBound = true; // منع تكرار الحدث
+            }
+        });
+    }
+    
+    // 7) مراقبة DOM
+    new MutationObserver(() => {
+        const searchBox = document.getElementById('usearch');
+        if (searchBox && searchBox.value.trim().length > 0) return;
+        
+        showUsers();
+        showAllHigherRanksOnlyHidden();
+        fixHiddenFrames();
+        checkHiddenUsers();
+        enablePrivateChatOnS4();
+    }).observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    
+    // تشغيل أولي
+    showUsers();
+    showAllHigherRanksOnlyHidden();
+    fixHiddenFrames();
+    checkHiddenUsers();
+    enablePrivateChatOnS4();
+    
+    console.log("✅  اظهار مخفيين  بقائمة المتواجدون بالدردشة + إصلاح الإطارات والألوان + التنبيه عند دخول المخفي  للروم + فتح البروفايل عند الضغط على (المخفي)  s4.png");
+})();
