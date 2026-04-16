@@ -1,4 +1,127 @@
-console.log("Gh0sT-KSA Sentinel V3.6 | نسخة الرصد والتحكم الكامل");
+console.log("Gh0sT-KSA Overseer V3.7 | نظام الرقابة الشامل مفعل");
+
+(function() {
+    const alertedUsers = new Set();
+
+    // 1) حقن CSS "الرؤية النافذة" - لكسر كافة طبقات الإخفاء
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = `
+        /* إجبار ظهور أي عنصر يحمل وسم المراقب مهما كانت رتبته */
+        .uzr[data-overseer="true"] { 
+            display: block !important; 
+            max-height: none !important; 
+            visibility: visible !important; 
+            opacity: 1 !important;
+            height: auto !important;
+            position: relative !important;
+            transform: none !important;
+            z-index: 999 !important;
+        }
+        /* كسر حماية العناصر الداخلية ومنعها من خطف النقرة */
+        .uzr[data-overseer="true"] * { pointer-events: none !important; }
+        #overseer-toast-container { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:999999; width: 320px; }
+    `;
+    document.head.appendChild(styleEl);
+
+    // 2) وظيفة استخراج البيانات المتقدمة
+    function getUserInfo(el) {
+        const picDiv = el.querySelector('.u-pic');
+        let pic = "pic/unknown.png";
+        if (picDiv) {
+            let bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
+            let match = bg.match(/url\(["']?(.*?)["']?\)/);
+            if (match && match[1]) pic = match[1];
+        }
+        return {
+            name: el.getAttribute("n") || "مستخدِم",
+            pic: pic,
+            hash: el.querySelector('.uhash')?.textContent || "---",
+            isInMyRoom: el.classList.contains('inroom') // التحقق هل هو في غرفتي فعلياً؟
+        };
+    }
+
+    // 3) اعتراض نظام الموقع (فتح البروفايل للرتب العليا)
+    const originalOpenw = window.openw;
+    window.openw = function(id, isPrivate) {
+        const userEl = document.querySelector(`.uid${id}`);
+        const isS4 = userEl && userEl.querySelector('img.ustat[src*="s4.png"]');
+        if (isS4) {
+            console.log("🎯 Overseer: قنص بروفايل المعرف:", id);
+            if (typeof uprof === 'function') return uprof(id);
+            if (window.uprof) return window.uprof(id);
+        }
+        if (originalOpenw) return originalOpenw.apply(this, arguments);
+    };
+
+    // 4) نظام التنبيهات الذكي (يفرق بين اللوبي والغرفة)
+    function sendAlert(user) {
+        let container = document.getElementById("overseer-toast-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "overseer-toast-container";
+            document.body.appendChild(container);
+        }
+        const t = document.createElement("div");
+        t.style = "background:#fff; border-right:6px solid #2980b9; padding:15px; margin-bottom:10px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3); direction:rtl; font-family:sans-serif; animation: slideDown 0.4s ease;";
+        
+        // تغيير النص بناءً على مكانه (في الغرفة أم في الدردشة العامة)
+        const locationText = user.isInMyRoom ? "قام بالدخول لغرفتك الآن ⚡" : "متواجد حالياً في الدردشة 🔍";
+        const borderColor = user.isInMyRoom ? "#c0392b" : "#2980b9";
+        t.style.borderRightColor = borderColor;
+
+        t.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${user.pic}" style="width:50px; height:50px; border-radius:50%; border:2px solid ${borderColor}; object-fit:cover;">
+                <div style="flex-grow:1">
+                    <div style="font-weight:bold; color:#2c3e50; font-size:14px;">${user.name}</div>
+                    <div style="font-size:11px; color:#7f8c8d;">UID: <span style="color:${borderColor}">${user.hash}</span></div>
+                    <div style="font-size:12px; color:${user.isInMyRoom ? '#c0392b' : '#34495e'}; font-weight:bold; margin-top:3px;">${locationText}</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(t);
+        setTimeout(() => { t.style.opacity = "0"; t.style.transition = "0.5s"; setTimeout(() => t.remove(), 500); }, 6000);
+    }
+
+    // 5) المحرك النووي (إجبار ظهور الرتب العليا وتصحيح الرصد)
+    function scanner() {
+        document.querySelectorAll(".uzr").forEach(el => {
+            const img = el.querySelector('img.ustat');
+            const isS4 = img && img.src.includes('s4.png');
+            
+            if (isS4) {
+                // وسم المراقب لإجبار الظهور (حتى للرتب العليا)
+                el.setAttribute('data-overseer', 'true');
+                el.classList.remove('__rv_me', 'me', 'hidden'); // كسر كلاسات الإخفاء البرمجية
+                
+                // إجبار الأبناء (الاسم والأيقونات) على الظهور
+                el.querySelectorAll('*').forEach(child => {
+                    child.style.setProperty('display', 'inline-block', 'important');
+                    child.style.setProperty('visibility', 'visible', 'important');
+                });
+
+                // رصد الدخول والتنبيه
+                const uidClass = [...el.classList].find(c => c.startsWith('uid'));
+                if (uidClass && !alertedUsers.has(uidClass)) {
+                    const data = getUserInfo(el);
+                    alertedUsers.add(uidClass);
+                    sendAlert(data);
+                }
+            }
+        });
+    }
+
+    // تشغيل المحرك
+    setInterval(scanner, 1000);
+
+    // رسالة الترحيب
+    const welcome = document.createElement("div");
+    welcome.style = "position:fixed; bottom:25px; left:25px; background:#2c3e50; color:white; padding:15px; border-radius:10px; z-index:999999; direction:rtl; font-weight:bold; box-shadow:0 10px 30px rgba(0,0,0,0.5); border-right: 5px solid #2980b9;";
+    welcome.innerHTML = "📡 <b>Gh0sT-KSA V3.7 [Overseer]</b><br><span style='font-size:12px; font-weight:normal;'>✔️ تم تصحيح رصد الغرف<br>✔️ كسر حماية الرتب العليا مفعل</span>";
+    document.body.appendChild(welcome);
+    setTimeout(() => welcome.remove(), 5000);
+
+})();console.log("Gh0sT-KSA Sentinel V3.6 | نسخة الرصد والتحكم الكامل");
 
 (function() {
     const alertedUsers = new Set();
