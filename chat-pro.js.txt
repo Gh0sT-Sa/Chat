@@ -1,23 +1,20 @@
 javascript: (function() {
-    // 1) ميزة تنبيه الدخول المخفي (Toast Notification)
+    // 1) وظيفة إظهار التنبيه (Toast) عند دخول شخص مخفي
     function showHiddenToast(user) {
-        if (document.getElementById(`toast-${user.hash}`)) return;
-        
-        const container = document.getElementById("mobile-toast-container") || (function() {
-            const c = document.createElement("div");
-            c.id = "mobile-toast-container";
-            c.style = "position:fixed;top:10px;right:10px;z-index:9999";
-            document.body.appendChild(c);
-            return c;
-        })();
+        let container = document.getElementById("mobile-toast-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "mobile-toast-container";
+            container.style = "position:fixed;top:10px;right:10px;z-index:9999";
+            document.body.appendChild(container);
+        }
 
         const toast = document.createElement("div");
-        toast.id = `toast-${user.hash}`;
         toast.onclick = () => toast.remove();
         toast.style = "background:#f0f0f0;border:2px solid #333;border-radius:10px;padding:10px;margin-top:10px;max-width:280px;font-family:sans-serif;color:#000;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;text-align:left";
         
         toast.innerHTML = `
-            <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه دخول مخفي</div>
+            <div style="font-weight:bold;text-align:center;margin-bottom:8px">🔔 تنبيه</div>
             <div style="display:flex;align-items:center;gap:8px">
                 <img src="${user.pic}" style="width:32px;height:32px;border-radius:50%;border:1px solid #ccc">
                 ${user.icon ? `<img src="${user.icon}" style="height:20px">` : ""}
@@ -26,57 +23,55 @@ javascript: (function() {
                     <div style="font-size:12px;color:gray">${user.hash}</div>
                 </div>
             </div>
-            <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold">تواجد مخفي في الروم</div>
+            <div style="margin-top:10px;padding:8px;background:#e0e0e0;border-radius:6px;text-align:center;font-weight:bold">دخل مخفي للروم</div>
         `;
         container.appendChild(toast);
-        setTimeout(() => toast.remove(), 5000); // يختفي تلقائياً بعد 5 ثوانٍ
+        setTimeout(() => toast.remove(), 5000);
     }
 
-    // 2) التلاعب بالكلاسات (Class List Hijacking) لمنع التتبع
-    const originalAdd = Element.prototype.classList.add;
-    Element.prototype.classList.add = function(...args) {
-        if (args.includes('__rv_me')) {
-            return; // منع إضافة هذا الكلاس نهائياً
-        }
-        return originalAdd.apply(this, args);
-    };
+    // 2) منع تتبع الكلاسات وإزالتها
+    function patchClassList() {
+        document.querySelectorAll('.uzr').forEach(el => {
+            if (!el._patched) {
+                const originalAdd = el.classList.add;
+                el.classList.add = function(...args) {
+                    if (args.includes('__rv_me')) return;
+                    originalAdd.apply(this, args);
+                };
+                el._patched = true;
+            }
+            if (el.classList.contains('__rv_me')) el.classList.remove('__rv_me');
+        });
+    }
 
-    // 3) إصلاح الإطارات والألوان (UI Normalization)
+    // 3) إصلاح الإطارات والألوان (UI Fix)
     function fixHiddenFrames() {
         document.querySelectorAll('.uzr').forEach(el => {
-            // إزالة كلاسات التميز والتحجيم الإجباري
             ['ahmed', 'mhmood', '__rv_me', 'custom-alaw'].forEach(cls => {
                 if (el.classList.contains(cls)) {
                     el.classList.remove(cls);
                     el.style.width = '';
                     el.style.height = '';
-                    el.style.display = ''; 
                 }
             });
-
             const topic = el.querySelector('.u-topic');
-            if (topic) {
-                topic.style.color = ''; 
-                topic.style.fontWeight = '';
-            }
+            if (topic) { topic.style.color = ''; topic.style.fontWeight = ''; }
         });
     }
 
-    // 4) فحص المخفيين وإظهار التنبيه
+    // 4) فحص المستخدمين المخفيين
     function checkHiddenUsers() {
         document.querySelectorAll('.uzr.inroom').forEach(userEl => {
-            const isVisible = userEl.offsetWidth > 0 && userEl.offsetHeight > 0;
-            if (!isVisible) {
-                const name = userEl.querySelector('.uname')?.innerText || "مستخدم مخفي";
+            if (userEl.offsetWidth === 0 && userEl.offsetHeight === 0) {
+                const name = userEl.querySelector('.uname')?.innerText || "مخفي";
                 const pic = userEl.querySelector('.u-pic')?.src || "";
-                const hash = [...userEl.classList].find(c => c.length > 10) || "No Hash";
-                
+                const hash = [...userEl.classList].find(c => c.length > 10) || "";
                 showHiddenToast({ name, pic, hash, icon: "" });
             }
         });
     }
 
-    // 5) الميزة المعدلة: فتح البروفايل عند الضغط على s4.png
+    // 5) التعديل المطلوب: فتح البروفايل عند الضغط على s4.png
     function enableProfileViewOnS4() {
         document.querySelectorAll('#users .uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
@@ -88,10 +83,11 @@ javascript: (function() {
                     e.stopPropagation();
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
-
+                    
+                    // استخدام uprof بدلاً من openw لفتح الملف الشخصي
                     if (userId && typeof uprof === "function") {
-                        uprof(userId); 
-                        console.log("ℹ️ تم فتح بروفايل المستخدم:", userId);
+                        uprof(userId);
+                        console.log("✅ تم فتح بروفايل المستخدم:", userId);
                     }
                 });
                 user._profileBound = true;
@@ -99,26 +95,28 @@ javascript: (function() {
         });
     }
 
-    // 6) مراقبة DOM (MutationObserver)
-    const observer = new MutationObserver(() => {
+    // 6) مراقب التغييرات (MutationObserver) مع صمامات أمان للدوال الخارجية
+    new MutationObserver(() => {
         const searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
 
+        // استدعاء الدوال الداخلية
+        patchClassList();
         fixHiddenFrames();
         checkHiddenUsers();
         enableProfileViewOnS4();
+
+        // استدعاء الدوال الخارجية بحذر (لتجنب أخطاء ReferenceError)
+        if (typeof showUsers === "function") showUsers();
         if (typeof showAllHigherRanksOnlyHidden === "function") showAllHigherRanksOnlyHidden();
-    });
+    }).observe(document.body, { childList: true, subtree: true });
 
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // تشغيل أولي لكافة المزايا
+    // تشغيل أولي
+    patchClassList();
     fixHiddenFrames();
     checkHiddenUsers();
     enableProfileViewOnS4();
+    if (typeof showUsers === "function") showUsers();
 
-    console.log("✅ السكربت المدمج جاهز:");
-    console.log("- كشف المخفيين وتنبيهات الـ Toast مفعلة.");
-    console.log("- تنظيف الإطارات (ahmed, mhmood) مفعل.");
-    console.log("- الضغط على s4.png يفتح البروفايل (uprof) فقط.");
+    console.log("✅ تم التفعيل بنجاح: الضغط على s4.png يفتح البروفايل الآن.");
 })();
