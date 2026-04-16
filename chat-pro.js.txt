@@ -187,26 +187,32 @@ javascript: (function() {
         }
     }
     
-    // 6) إضافة فتح الخاص عند الضغط على أصحاب s4.png
+    // 6) التعديل المطلوب: فتح البروفايل عند الضغط على أصحاب s4.png
     function enablePrivateChatOnS4() {
         document.querySelectorAll('#users .uzr').forEach(user => {
             const img = user.querySelector('img.ustat');
             if (!img || !img.getAttribute('src').includes('s4.png')) return;
             
             user.style.cursor = "pointer";
-            if (!user._privateBound) {
+            if (!user._profileBound) {
                 user.addEventListener("click", function(e) {
                     e.stopPropagation();
                     const uidClass = [...user.classList].find(c => c.startsWith("uid"));
                     const userId = uidClass ? uidClass.slice(3) : null;
-                    if (userId && typeof openw === "function") {
-                        openw(userId, true);
-                        console.log("✅ تم فتح المحادثة مع:", userId);
+                    
+                    // محاولة فتح البروفايل باستخدام الدالة getuser أو الضغط التلقائي على الصورة
+                    if (userId && typeof getuser === "function") {
+                        getuser(userId);
+                        console.log("👤 تم فتح بروفايل المستخدم:", userId);
+                    } else if (user.querySelector('.u-pic')) {
+                        // كخطة بديلة: الضغط البرمجي على الصورة لفتح الملف الشخصي
+                        user.querySelector('.u-pic').click();
+                        console.log("👤 تم الضغط على الصورة لفتح البروفايل");
                     } else {
-                        console.warn("❌ لم يتم العثور على uid أو الدالة غير موجودة");
+                        console.warn("❌ لم يتم العثور على طريقة لفتح البروفايل");
                     }
                 });
-                user._privateBound = true; // منع تكرار الحدث
+                user._profileBound = true; 
             }
         });
     }
@@ -233,5 +239,5 @@ javascript: (function() {
     checkHiddenUsers();
     enablePrivateChatOnS4();
     
-    console.log("✅ تم التفعيل: إظهار الأزرار + المخفيين + إصلاح الإطارات والألوان + تنبيه + فتح الخاص عند الضغط على أصحاب s4.png");
+    console.log("✅ تم التفعيل: الضغط على المخفي يفتح البروفايل الآن.");
 })();
