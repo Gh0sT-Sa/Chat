@@ -1,4 +1,4 @@
-console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + درع + رادار + صائد)");
+console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب القائمة المتقدمة)");
 
 (function() {
     // 1) إعداد الذاكرة
@@ -17,14 +17,14 @@ console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + 
         .uzr { border-right: none !important; border-left: none !important; } 
         #users .uzr { cursor: pointer !important; }
         
-        /* القائمة الذكية */
+        /* القائمة الذكية المحدثة */
         .ghost-smart-menu {
             position: absolute; background: #1a252f; color: #fff; padding: 5px; border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.8); z-index: 9999999; display: flex; flex-direction: column; gap: 4px;
-            min-width: 170px; font-family: Tahoma, sans-serif; font-size: 12px; direction: rtl; border: 1px solid #34495e;
+            min-width: 200px; font-family: Tahoma, sans-serif; font-size: 13px; direction: rtl; border: 1px solid #34495e;
         }
-        .ghost-menu-item { padding: 8px; cursor: pointer; border-radius: 4px; text-align: right; transition: background 0.2s; border-bottom: 1px solid #2c3e50; }
-        .ghost-menu-item:hover { background: #2c3e50; color: #e74c3c; font-weight: bold; }
+        .ghost-menu-item { padding: 8px 10px; cursor: pointer; border-radius: 4px; text-align: right; transition: background 0.2s; border-bottom: 1px solid #2c3e50; }
+        .ghost-menu-item:hover { background: #2c3e50; color: #e74c3c; font-weight: bold; padding-right: 15px; }
         .ghost-menu-item:last-child { border-bottom: none; }
         .ghost-menu-close { background: #c0392b; color: white; border-radius: 4px; text-align: center; padding: 6px; cursor: pointer; margin-top: 4px; font-weight: bold; }
 
@@ -46,8 +46,7 @@ console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + 
     `;
     document.head.appendChild(styles);
 
-    // 3) درع منع الطرد (Anti-Kick Shield)
-    // نقوم بتعطيل الدوال الشائعة التي تستخدمها السكريبتات لطرد العميل
+    // 3) درع منع الطرد (Anti-Kick Shield) + حفظ الدالة الأصلية
     if(typeof window.kick === 'function') {
         window.originalKick = window.kick;
         window.kick = function() { console.log("🛡️ Gh0sT Shield: تم صد أمر طرد محلي!"); };
@@ -78,13 +77,9 @@ console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + 
                 el.style.setProperty('max-height', 'none', 'important');
                 el.style.setProperty('opacity', '1', 'important');
                 el.classList.remove('__rv_me', 'me');
-                el.querySelectorAll('[style*="display: none"]').forEach(function(inner) {
-                    inner.style.setProperty('display', 'block', 'important');
-                });
+                el.querySelectorAll('[style*="display: none"]').forEach(function(inner) { inner.style.setProperty('display', 'block', 'important'); });
                 var ustat = el.querySelector("img.ustat, img[src*='s0.png']");
-                if (ustat && !ustat.src.includes('s4.png') && (hasHiddenClass || isHiddenStyle)) {
-                    ustat.src = 'imgs/s4.png';
-                }
+                if (ustat && !ustat.src.includes('s4.png') && (hasHiddenClass || isHiddenStyle)) ustat.src = 'imgs/s4.png';
             }
             var style = window.getComputedStyle(el);
             if (style.width === '0px' || style.height === '0px') { el.style.width = ''; el.style.height = ''; }
@@ -144,10 +139,9 @@ console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + 
         });
     }
 
-    // 7) صائد الرسائل المحذوفة ورادار الكلمات (Mutation Observer على الدردشة)
+    // 7) صائد الرسائل المحذوفة ورادار الكلمات
     window.chatSpyObserver = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
-            // مراقبة الرسائل الجديدة للكلمات المفتاحية
             if(mutation.addedNodes && mutation.addedNodes.length > 0) {
                 mutation.addedNodes.forEach(function(node) {
                     if(node.innerText && node.innerText.includes(targetKeyword)) {
@@ -155,31 +149,23 @@ console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + 
                     }
                 });
             }
-            // مراقبة الرسائل المحذوفة
             if(mutation.removedNodes && mutation.removedNodes.length > 0) {
                 mutation.removedNodes.forEach(function(node) {
-                    // إذا كان العنصر المحذوف يبدو كرسالة أو يوزر
                     if(node.nodeType === 1 && (node.classList.contains('uzr') || node.classList.contains('msg'))) {
                         node.classList.add('ghost-recovered-msg');
                         var label = document.createElement('span');
                         label.className = 'ghost-recovered-label';
                         label.innerText = '[محاولة حذف]';
                         node.insertBefore(label, node.firstChild);
-                        // إعادة حقنها في المكان الذي حذفت منه إذا أمكن
-                        if(mutation.target) {
-                            mutation.target.appendChild(node);
-                            console.log("👻 صائد Gh0sT استرجع رسالة محذوفة!");
-                        }
+                        if(mutation.target) mutation.target.appendChild(node);
                     }
                 });
             }
         });
     });
-    // نراقب الشاشة كاملة للبحث عن التغييرات
     window.chatSpyObserver.observe(document.body, { childList: true, subtree: true });
 
-
-    // 8) القائمة الذكية الشاملة (محصورة في المتواجدين)
+    // 8) القائمة الذكية (بالترتيب الجديد والدمج)
     function enableSmartMenu() {
         document.querySelectorAll('#users .uzr').forEach(function(user) {
             if (!user.querySelector('.u-pic')) return; 
@@ -194,6 +180,7 @@ console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + 
                     var userId = uidClass ? uidClass.slice(3) : "غير معروف";
                     var userName = user.getAttribute("n") ? user.getAttribute("n").trim() : "بدون اسم";
                     var userIp = user.getAttribute("i") || user.getAttribute("ip") || "محمي بالسيرفر";
+                    var devInfo = user.getAttribute("d") || user.getAttribute("dev") || "معلومات غير متوفرة";
 
                     var encryptedId = "غير متوفر";
                     var picUrl = "pic/unknown.png";
@@ -217,58 +204,98 @@ console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + 
                         menu.style.left = (e.pageX + 15) + 'px'; menu.style.top = (e.pageY) + 'px';
                     }
 
+                    // الترتيب المطلوب بدقة
                     menu.innerHTML = `
                         <div class="ghost-menu-item" id="btn-profile">👤 فتح البروفايل</div>
-                        <div class="ghost-menu-item" id="btn-private">💬 فتح الخاص</div>
-                        <div class="ghost-menu-item" id="btn-save-pic">🖼️ عرض وحفظ الصورة</div>
+                        <div class="ghost-menu-item" id="btn-private">💬 رسالة خاصة</div>
+                        <div class="ghost-menu-item" id="btn-copy-name">📝 نسخ الاسم</div>
+                        <div class="ghost-menu-item" id="btn-save-pic">🖼️ حفظ الصورة</div>
                         <div class="ghost-menu-item" id="btn-clone">🎭 استنساخ البروفايل</div>
-                        <div class="ghost-menu-item" id="btn-spam">🔥 منشن مزعج (تجهيز)</div>
-                        <div class="ghost-menu-item" id="btn-copy-id">🔑 نسخ المعرف: ` + userId + `</div>
-                        <div class="ghost-menu-item" id="btn-track-ip">🌍 تتبع الآي بي</div>
+                        <div class="ghost-menu-item" id="btn-id-actions">🔑 نسخ وبحث المعرف</div>
+                        <div class="ghost-menu-item" id="btn-ip-actions">🌍 نسخ وبحث وتتبع الآي بي</div>
+                        <div class="ghost-menu-item" id="btn-dev-actions">📱 نسخ وبحث معلومات الجهاز</div>
+                        <div class="ghost-menu-item" id="btn-spam">🔥 منشن مزعج</div>
+                        <div class="ghost-menu-item" id="btn-kick">⛔ طرد العضو</div>
                         <div class="ghost-menu-close">إغلاق ❌</div>
                     `;
                     document.body.appendChild(menu);
 
-                    // الدوال المدمجة
+                    // 1. فتح البروفايل
                     document.getElementById('btn-profile').onclick = function() {
                         if (picEl) picEl.click(); else alert("تعذر الفتح."); menu.remove();
                     };
                     
+                    // 2. رسالة خاصة
                     document.getElementById('btn-private').onclick = function() {
                         if (userId !== "غير معروف" && typeof window.openw === 'function') window.openw(userId, true); menu.remove();
                     };
+
+                    // 3. نسخ الاسم
+                    document.getElementById('btn-copy-name').onclick = function() {
+                        prompt("انسخ الاسم:", userName); menu.remove();
+                    };
                     
+                    // 4. حفظ الصورة
                     document.getElementById('btn-save-pic').onclick = function() {
                         window.open(picUrl, '_blank'); menu.remove();
                     };
 
+                    // 5. استنساخ البروفايل
                     document.getElementById('btn-clone').onclick = function() {
-                        prompt("🎭 تم الاستنساخ الوهمي! انسخ الاسم وضعه في ملفك:", userName);
+                        prompt("🎭 تم الاستنساخ! انسخ الاسم وضعه في ملفك:", userName);
                         alert("لتغيير صورتك، استخدم هذا الرابط:\n" + picUrl);
                         menu.remove();
                     };
 
-                    document.getElementById('btn-spam').onclick = function() {
-                        var chatInput = document.querySelector('input[type="text"]') || document.querySelector('textarea');
-                        if(chatInput) {
-                            chatInput.value += " ﴾" + userName + "﴿ ";
-                            chatInput.focus();
+                    // 6. نسخ وبحث المعرف
+                    document.getElementById('btn-id-actions').onclick = function() {
+                        var targetId = (encryptedId !== "غير متوفر") ? encryptedId : userId;
+                        prompt("انسخ المعرف للبحث عنه:", targetId); 
+                        // محاولة وضع المعرف في مربع البحث تلقائياً إذا كان موجوداً
+                        var searchBox = document.getElementById('usearch');
+                        if (searchBox) { searchBox.value = targetId; searchBox.dispatchEvent(new Event('keyup')); }
+                        menu.remove();
+                    };
+
+                    // 7. نسخ وبحث وتتبع الآي بي
+                    document.getElementById('btn-ip-actions').onclick = function() {
+                        if (userIp !== "محمي بالسيرفر") {
+                            prompt("انسخ الآي بي للبحث (سيفتح التتبع في نافذة جديدة):", userIp);
+                            window.open("https://ipinfo.io/" + userIp, '_blank');
+                            var searchBox = document.getElementById('usearch');
+                            if (searchBox) { searchBox.value = userIp; searchBox.dispatchEvent(new Event('keyup')); }
                         } else {
-                            prompt("انسخ المنشن المزعج:", " ﴾" + userName + "﴿ ﴾" + userName + "﴿ ");
+                            alert("الآي بي محمي بالسيرفر، لا يمكن البحث أو التتبع.");
                         }
                         menu.remove();
                     };
 
-                    document.getElementById('btn-copy-id').onclick = function() {
-                        prompt("المعرف المشفر:", encryptedId); menu.remove();
-                    };
-
-                    document.getElementById('btn-track-ip').onclick = function() {
-                        if (userIp !== "محمي بالسيرفر") window.open("https://ipinfo.io/" + userIp, '_blank');
-                        else alert("الآي بي محمي بالسيرفر.");
+                    // 8. نسخ وبحث معلومات الجهاز
+                    document.getElementById('btn-dev-actions').onclick = function() {
+                        prompt("انسخ معلومات الجهاز للبحث:", devInfo);
+                        var searchBox = document.getElementById('usearch');
+                        if (searchBox && devInfo !== "معلومات غير متوفرة") { searchBox.value = devInfo; searchBox.dispatchEvent(new Event('keyup')); }
                         menu.remove();
                     };
-                    
+
+                    // 9. منشن مزعج
+                    document.getElementById('btn-spam').onclick = function() {
+                        var chatInput = document.querySelector('input[type="text"]') || document.querySelector('textarea');
+                        if(chatInput) { chatInput.value += " ﴾" + userName + "﴿ "; chatInput.focus(); } 
+                        else { prompt("انسخ المنشن المزعج:", " ﴾" + userName + "﴿ ﴾" + userName + "﴿ "); }
+                        menu.remove();
+                    };
+
+                    // 10. طرد العضو
+                    document.getElementById('btn-kick').onclick = function() {
+                        if(confirm("⚠️ تأكيد: هل تريد محاولة طرد ( " + userName + " ) ؟")) {
+                            if(typeof window.originalKick === 'function') window.originalKick(userId);
+                            else if(typeof kick === 'function') kick(userId);
+                            else alert("لا توجد صلاحية طرد متاحة في حسابك الحالي.");
+                        }
+                        menu.remove();
+                    };
+
                     menu.querySelector('.ghost-menu-close').onclick = function() { menu.remove(); };
 
                 }, true);
@@ -286,6 +313,6 @@ console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + 
     window.ghostObserver.observe(document.body, { childList: true, subtree: true });
     
     processUsers(); checkHiddenUsers(); enableSmartMenu();
-    alert("✅ Gh0sT-KSA V6.0 Activated!\n\n- تم تفعيل درع الطرد (محلياً).\n- رادار الكلمات يعمل.\n- صائد الرسائل المحذوفة نشط.\n- القائمة الذكية مجهزة بالكامل.");
+    alert("✅ Gh0sT-KSA V6.1 Activated!\n\n- تم ترتيب القائمة الذكية بدقة كما طلبت.\n- تم دمج أدوات النسخ والبحث.\n- درع الطرد نشط مع إمكانية طردك للآخرين.");
 
 })();
