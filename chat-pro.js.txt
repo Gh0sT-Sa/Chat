@@ -1,27 +1,34 @@
-console.log("Gh0sT-KSA V5.3 | Precision Targeting & Advanced Search");
+console.log("Gh0sT-KSA V6.0 | الترسانة الشاملة (استنساخ + درع + رادار + صائد)");
 
 (function() {
-    // 1) Setup & Clear previous instances
+    // 1) إعداد الذاكرة
     var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (window.ghostKsaActive) window.ghostObserver && window.ghostObserver.disconnect();
     window.ghostKsaActive = true;
-    window.alertedGhosts = window.alertedGhosts || new Set();
+    window.alertedGhosts = new Set();
+    
+    // إعداد رادار الكلمات المفتاحية
+    var targetKeyword = prompt("🛡️ نظام Gh0sT-KSA\nأدخل كلمة مفتاحية لمراقبتها في العام (سيصيح الرادار عند كتابتها):", "مخفي");
+    if(!targetKeyword) targetKeyword = "مخفي";
 
-    // 2) CSS Styles
+    // 2) أكواد التصميم (CSS)
     var styles = document.createElement('style');
     styles.innerHTML = `
-        /* Smart Menu */
+        .uzr { border-right: none !important; border-left: none !important; } 
+        #users .uzr { cursor: pointer !important; }
+        
+        /* القائمة الذكية */
         .ghost-smart-menu {
             position: absolute; background: #1a252f; color: #fff; padding: 5px; border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.8); z-index: 9999999; display: flex; flex-direction: column; gap: 4px;
-            min-width: 160px; font-family: Tahoma, sans-serif; font-size: 13px; direction: rtl; border: 1px solid #34495e;
+            min-width: 170px; font-family: Tahoma, sans-serif; font-size: 12px; direction: rtl; border: 1px solid #34495e;
         }
-        .ghost-menu-item { padding: 10px; cursor: pointer; border-radius: 4px; text-align: right; transition: background 0.2s; border-bottom: 1px solid #2c3e50; }
-        .ghost-menu-item:hover { background: #2c3e50; color: #3498db; font-weight: bold; }
+        .ghost-menu-item { padding: 8px; cursor: pointer; border-radius: 4px; text-align: right; transition: background 0.2s; border-bottom: 1px solid #2c3e50; }
+        .ghost-menu-item:hover { background: #2c3e50; color: #e74c3c; font-weight: bold; }
         .ghost-menu-item:last-child { border-bottom: none; }
-        .ghost-menu-close { background: #c0392b; color: white; border-radius: 4px; text-align: center; padding: 8px; cursor: pointer; margin-top: 4px; font-weight: bold; }
+        .ghost-menu-close { background: #c0392b; color: white; border-radius: 4px; text-align: center; padding: 6px; cursor: pointer; margin-top: 4px; font-weight: bold; }
 
-        /* Radar Alert */
+        /* حاوية الرادار */
         #ghost-radar-container { position: fixed; top: 15px; left: 15px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; }
         .ghost-alert { 
             background: rgba(44, 62, 80, 0.95); border-left: 5px solid #e74c3c; border-radius: 8px; padding: 10px; width: 250px; 
@@ -30,18 +37,33 @@ console.log("Gh0sT-KSA V5.3 | Precision Targeting & Advanced Search");
         .ghost-alert-header { font-weight: bold; color: #e74c3c; margin-bottom: 5px; font-size: 13px; border-bottom: 1px solid #7f8c8d; padding-bottom: 5px; text-align: center; }
         .ghost-alert-body { font-size: 12px; line-height: 1.6; }
         .ghost-alert-body span { color: #f1c40f; font-weight: bold; }
+        
+        /* تمييز الرسائل المحذوفة */
+        .ghost-recovered-msg { border: 1px dashed red !important; opacity: 0.8; background: rgba(231, 76, 60, 0.1) !important; }
+        .ghost-recovered-label { color: red; font-size: 10px; font-weight: bold; margin-right: 5px; }
+
         @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     `;
     document.head.appendChild(styles);
 
-    // 3) Close menu on outside click
+    // 3) درع منع الطرد (Anti-Kick Shield)
+    // نقوم بتعطيل الدوال الشائعة التي تستخدمها السكريبتات لطرد العميل
+    if(typeof window.kick === 'function') {
+        window.originalKick = window.kick;
+        window.kick = function() { console.log("🛡️ Gh0sT Shield: تم صد أمر طرد محلي!"); };
+    }
+    if(typeof window.kicked === 'function') {
+        window.kicked = function() { console.log("🛡️ Gh0sT Shield: تم صد أمر Kicked!"); };
+    }
+
+    // 4) إغلاق القائمة عند النقر
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.ghost-smart-menu')) {
             document.querySelectorAll('.ghost-smart-menu').forEach(function(m) { m.remove(); });
         }
     });
 
-    // 4) Process Users (Reveal hidden, fix frames)
+    // 5) كشف الرتب وإصلاح الإطارات
     function processUsers() {
         document.querySelectorAll('.btn').forEach(function(el) { el.style.display = 'block'; });
         document.querySelectorAll('[class^="itarr"]').forEach(function(el) { el.remove(); });
@@ -64,27 +86,37 @@ console.log("Gh0sT-KSA V5.3 | Precision Targeting & Advanced Search");
                     ustat.src = 'imgs/s4.png';
                 }
             }
-            
             var style = window.getComputedStyle(el);
             if (style.width === '0px' || style.height === '0px') { el.style.width = ''; el.style.height = ''; }
         });
     }
 
-    // 5) Radar System
+    // 6) نظام الرادار (مخفيين + كلمات مفتاحية)
     if (!document.getElementById("ghost-radar-container")) {
         var container = document.createElement("div");
         container.id = "ghost-radar-container";
         document.body.appendChild(container);
     }
 
+    function createAlert(title, line1, line2) {
+        var toast = document.createElement("div");
+        toast.className = "ghost-alert";
+        toast.onclick = function() { toast.remove(); }; 
+        toast.innerHTML = `
+            <div class="ghost-alert-header">${title}</div>
+            <div class="ghost-alert-body">
+                <div>${line1}</div>
+                <div>${line2}</div>
+            </div>
+        `;
+        document.getElementById("ghost-radar-container").appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 8000); 
+    }
+
     function checkHiddenUsers() {
         var currentGhostsInDom = new Set();
-        // TARGET ONLY THE USER LIST (Usually #users or similar, assuming .uzr inside a specific container)
-        // If the container ID is unknown, we filter by elements containing the full user structure
-        document.querySelectorAll('.uzr.inroom').forEach(function(userEl) {
-             // Ensure we are in the user list, not the chat text. User list elements usually have more structure.
+        document.querySelectorAll('#users .uzr.inroom').forEach(function(userEl) {
             if(!userEl.querySelector('.u-pic')) return;
-
             var statusImg = userEl.querySelector('img.ustat');
             if (statusImg && statusImg.src.includes('s4.png')) {
                 var uidClass = Array.from(userEl.classList).find(function(c) { return c.startsWith('uid'); });
@@ -93,14 +125,11 @@ console.log("Gh0sT-KSA V5.3 | Precision Targeting & Advanced Search");
         });
         
         window.alertedGhosts.forEach(function(id) {
-            if (!currentGhostsInDom.has(id)) {
-                window.alertedGhosts.delete(id);
-            }
+            if (!currentGhostsInDom.has(id)) window.alertedGhosts.delete(id);
         });
 
-        document.querySelectorAll('.uzr.inroom').forEach(function(userEl) {
-             if(!userEl.querySelector('.u-pic')) return; // Filter out chat messages
-
+        document.querySelectorAll('#users .uzr.inroom').forEach(function(userEl) {
+             if(!userEl.querySelector('.u-pic')) return;
             var statusImg = userEl.querySelector('img.ustat');
             if (statusImg && statusImg.src.includes('s4.png')) {
                 var uidClass = Array.from(userEl.classList).find(function(c) { return c.startsWith('uid'); });
@@ -108,38 +137,57 @@ console.log("Gh0sT-KSA V5.3 | Precision Targeting & Advanced Search");
                 
                 if (userId && !window.alertedGhosts.has(userId)) {
                     window.alertedGhosts.add(userId); 
-                    
                     var name = userEl.getAttribute("n") ? userEl.getAttribute("n").trim() : "غير معروف";
-                    
-                    var toast = document.createElement("div");
-                    toast.className = "ghost-alert";
-                    toast.onclick = function() { toast.remove(); }; 
-                    toast.innerHTML = `
-                      <div class="ghost-alert-header">🚨 تم رصد دخول مخفي</div>
-                      <div class="ghost-alert-body">
-                            <div>الاسم: <span>` + name + `</span></div>
-                            <div>رقم العضوية: <span>` + userId + `</span></div>
-                      </div>
-                    `;
-                    document.getElementById("ghost-radar-container").appendChild(toast);
-                    setTimeout(function() { toast.remove(); }, 7000); 
+                    createAlert("🚨 تم رصد دخول مخفي", "الاسم: <span>" + name + "</span>", "رقم العضوية: <span>" + userId + "</span>");
                 }
             }
         });
     }
 
-    // 6) Smart Menu (STRICTLY CONFINED)
+    // 7) صائد الرسائل المحذوفة ورادار الكلمات (Mutation Observer على الدردشة)
+    window.chatSpyObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            // مراقبة الرسائل الجديدة للكلمات المفتاحية
+            if(mutation.addedNodes && mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach(function(node) {
+                    if(node.innerText && node.innerText.includes(targetKeyword)) {
+                        createAlert("🎯 رادار الكلمات المفتاحية", "تم رصد كلمة: <span>" + targetKeyword + "</span>", "النص: " + node.innerText.substring(0, 30) + "...");
+                    }
+                });
+            }
+            // مراقبة الرسائل المحذوفة
+            if(mutation.removedNodes && mutation.removedNodes.length > 0) {
+                mutation.removedNodes.forEach(function(node) {
+                    // إذا كان العنصر المحذوف يبدو كرسالة أو يوزر
+                    if(node.nodeType === 1 && (node.classList.contains('uzr') || node.classList.contains('msg'))) {
+                        node.classList.add('ghost-recovered-msg');
+                        var label = document.createElement('span');
+                        label.className = 'ghost-recovered-label';
+                        label.innerText = '[محاولة حذف]';
+                        node.insertBefore(label, node.firstChild);
+                        // إعادة حقنها في المكان الذي حذفت منه إذا أمكن
+                        if(mutation.target) {
+                            mutation.target.appendChild(node);
+                            console.log("👻 صائد Gh0sT استرجع رسالة محذوفة!");
+                        }
+                    }
+                });
+            }
+        });
+    });
+    // نراقب الشاشة كاملة للبحث عن التغييرات
+    window.chatSpyObserver.observe(document.body, { childList: true, subtree: true });
+
+
+    // 8) القائمة الذكية الشاملة (محصورة في المتواجدين)
     function enableSmartMenu() {
-        document.querySelectorAll('.uzr').forEach(function(user) {
-            // STRICT FILTER: Only apply if it has a profile picture (user list).
-            // Ignore if it's inside the chat window.
+        document.querySelectorAll('#users .uzr').forEach(function(user) {
             if (!user.querySelector('.u-pic')) return; 
             
             if (!user._menuBound) {
-                user.addEventListener("contextmenu", function(e) { // Changed to right-click/long-press to avoid interfering with normal clicks
+                user.addEventListener("contextmenu", function(e) { 
                     e.stopImmediatePropagation();
                     e.preventDefault();
-                    
                     document.querySelectorAll('.ghost-smart-menu').forEach(function(m) { m.remove(); });
 
                     var uidClass = Array.from(user.classList).find(function(c) { return c.startsWith("uid"); });
@@ -148,139 +196,96 @@ console.log("Gh0sT-KSA V5.3 | Precision Targeting & Advanced Search");
                     var userIp = user.getAttribute("i") || user.getAttribute("ip") || "محمي بالسيرفر";
 
                     var encryptedId = "غير متوفر";
+                    var picUrl = "pic/unknown.png";
                     var picEl = user.querySelector('.u-pic');
+                    
                     if (picEl) {
                         var onclickStr = picEl.getAttribute('onclick') || "";
                         var match = onclickStr.match(/upro\(['"]([^'"]+)['"]\)/);
                         if (match && match[1]) encryptedId = match[1];
+                        
+                        var bg = picEl.style.backgroundImage || window.getComputedStyle(picEl).backgroundImage;
+                        var matchPic = bg.match(/url\(["']?(.*?)["']?\)/);
+                        if (matchPic && matchPic[1]) picUrl = matchPic[1].startsWith('http') ? matchPic[1] : window.location.origin + '/' + matchPic[1].replace(/^\/+/, '');
                     }
 
                     var menu = document.createElement('div');
                     menu.className = 'ghost-smart-menu';
-                    
                     if (isMobile) {
-                        menu.style.left = '50%';
-                        menu.style.top = '50%';
-                        menu.style.transform = 'translate(-50%, -50%)';
-                        menu.style.position = 'fixed';
+                        menu.style.left = '50%'; menu.style.top = '50%'; menu.style.transform = 'translate(-50%, -50%)'; menu.style.position = 'fixed';
                     } else {
-                        menu.style.left = (e.pageX + 15) + 'px';
-                        menu.style.top = (e.pageY) + 'px';
+                        menu.style.left = (e.pageX + 15) + 'px'; menu.style.top = (e.pageY) + 'px';
                     }
 
                     menu.innerHTML = `
                         <div class="ghost-menu-item" id="btn-profile">👤 فتح البروفايل</div>
                         <div class="ghost-menu-item" id="btn-private">💬 فتح الخاص</div>
-                        <div class="ghost-menu-item" id="btn-copy-id">🔑 نسخ المعرف المشفر</div>
-                        <div class="ghost-menu-item" id="btn-search-id">🔍 بحث بالمعرف المشفر</div>
-                        <div class="ghost-menu-item" id="btn-copy-ip">🌐 نسخ الآي بي</div>
-                        <div class="ghost-menu-item" id="btn-search-ip">🕵️ بحث بالآي بي</div>
-                        <div class="ghost-menu-item" id="btn-device-info">📱 معلومات الجهاز</div>
-                        <div class="ghost-menu-item" id="btn-kick">⛔ طرد العضو</div>
+                        <div class="ghost-menu-item" id="btn-save-pic">🖼️ عرض وحفظ الصورة</div>
+                        <div class="ghost-menu-item" id="btn-clone">🎭 استنساخ البروفايل</div>
+                        <div class="ghost-menu-item" id="btn-spam">🔥 منشن مزعج (تجهيز)</div>
+                        <div class="ghost-menu-item" id="btn-copy-id">🔑 نسخ المعرف: ` + userId + `</div>
+                        <div class="ghost-menu-item" id="btn-track-ip">🌍 تتبع الآي بي</div>
                         <div class="ghost-menu-close">إغلاق ❌</div>
                     `;
-
                     document.body.appendChild(menu);
 
-                    // 1. Open Profile
+                    // الدوال المدمجة
                     document.getElementById('btn-profile').onclick = function() {
-                        if (encryptedId && typeof upro === 'function') {
-                            upro(encryptedId);
-                        } else if (userId !== "غير معروف" && typeof uprof === 'function') {
-                            uprof(userId);
-                        } else {
-                            alert("لا يمكن فتح البروفايل.");
-                        }
-                        menu.remove();
+                        if (picEl) picEl.click(); else alert("تعذر الفتح."); menu.remove();
                     };
                     
-                    // 2. Open Private
                     document.getElementById('btn-private').onclick = function() {
-                        if (userId !== "غير معروف" && typeof window.openw === 'function') {
-                            window.openw(userId, true);
-                        }
-                        menu.remove();
+                        if (userId !== "غير معروف" && typeof window.openw === 'function') window.openw(userId, true); menu.remove();
                     };
                     
-                    // 3. Copy Encrypted ID
-                    document.getElementById('btn-copy-id').onclick = function() {
-                        prompt("انسخ المعرف المشفر:", encryptedId);
+                    document.getElementById('btn-save-pic').onclick = function() {
+                        window.open(picUrl, '_blank'); menu.remove();
+                    };
+
+                    document.getElementById('btn-clone').onclick = function() {
+                        prompt("🎭 تم الاستنساخ الوهمي! انسخ الاسم وضعه في ملفك:", userName);
+                        alert("لتغيير صورتك، استخدم هذا الرابط:\n" + picUrl);
                         menu.remove();
                     };
 
-                    // 4. Search by Encrypted ID
-                    document.getElementById('btn-search-id').onclick = function() {
-                         if(encryptedId === "غير متوفر"){
-                             alert("لا يوجد معرف مشفر لهذا العضو");
-                         } else {
-                             alert("وظيفة البحث بالمعرف المشفر قيد التطوير. المعرف هو: " + encryptedId);
-                             // Here you would add logic to filter the DOM based on this ID
-                         }
-                         menu.remove();
-                    };
-
-                    // 5. Copy IP
-                    document.getElementById('btn-copy-ip').onclick = function() {
-                        prompt("انسخ الآي بي:", userIp);
-                        menu.remove();
-                    };
-
-                    // 6. Search by IP
-                    document.getElementById('btn-search-ip').onclick = function() {
-                        if(userIp === "محمي بالسيرفر"){
-                             alert("الآي بي محمي بالسيرفر، لا يمكن البحث.");
-                         } else {
-                             alert("وظيفة البحث بالآي بي قيد التطوير. الآي بي هو: " + userIp);
-                             // Here you would add logic to filter the DOM based on this IP
-                         }
-                        menu.remove();
-                    };
-
-                    // 7. Device Info
-                    document.getElementById('btn-device-info').onclick = function() {
-                        var devInfo = user.getAttribute("d") || user.getAttribute("dev") || "معلومات الجهاز غير متوفرة";
-                        alert("معلومات الجهاز:\n" + devInfo);
-                        menu.remove();
-                    };
-
-                    // 8. Kick User
-                    document.getElementById('btn-kick').onclick = function() {
-                        var confirmKick = confirm("هل أنت متأكد من رغبتك في محاولة طرد " + userName + "؟");
-                        if(confirmKick) {
-                            if(typeof kickUser === 'function') {
-                                kickUser(userId); // Trying a generic kick function name
-                            } else {
-                                alert("لم يتم العثور على دالة الطرد. قد تحتاج إلى صلاحيات أعلى.");
-                            }
+                    document.getElementById('btn-spam').onclick = function() {
+                        var chatInput = document.querySelector('input[type="text"]') || document.querySelector('textarea');
+                        if(chatInput) {
+                            chatInput.value += " ﴾" + userName + "﴿ ";
+                            chatInput.focus();
+                        } else {
+                            prompt("انسخ المنشن المزعج:", " ﴾" + userName + "﴿ ﴾" + userName + "﴿ ");
                         }
+                        menu.remove();
+                    };
+
+                    document.getElementById('btn-copy-id').onclick = function() {
+                        prompt("المعرف المشفر:", encryptedId); menu.remove();
+                    };
+
+                    document.getElementById('btn-track-ip').onclick = function() {
+                        if (userIp !== "محمي بالسيرفر") window.open("https://ipinfo.io/" + userIp, '_blank');
+                        else alert("الآي بي محمي بالسيرفر.");
                         menu.remove();
                     };
                     
                     menu.querySelector('.ghost-menu-close').onclick = function() { menu.remove(); };
 
                 }, true);
-                
                 user._menuBound = true;
             }
         });
     }
     
-    // 7) Main Engine
+    // 9) المحرك الأساسي
     window.ghostObserver = new MutationObserver(function() {
         var searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
-        
-        processUsers();
-        checkHiddenUsers();
-        enableSmartMenu();
+        processUsers(); checkHiddenUsers(); enableSmartMenu();
     });
-    
     window.ghostObserver.observe(document.body, { childList: true, subtree: true });
     
-    processUsers();
-    checkHiddenUsers();
-    enableSmartMenu();
-
-    alert("✅ Gh0sT-KSA V5.3 Activated!\n\n- Smart Menu now requires Right-Click (or Long Press on mobile).\n- Fixed interference with chat messages and private chats.\n- Radar now displays the correct Member ID.\n- Added new search options (WIP).");
+    processUsers(); checkHiddenUsers(); enableSmartMenu();
+    alert("✅ Gh0sT-KSA V6.0 Activated!\n\n- تم تفعيل درع الطرد (محلياً).\n- رادار الكلمات يعمل.\n- صائد الرسائل المحذوفة نشط.\n- القائمة الذكية مجهزة بالكامل.");
 
 })();
