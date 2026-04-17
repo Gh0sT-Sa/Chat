@@ -1,4 +1,4 @@
-console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب القائمة المتقدمة)");
+console.log("Gh0sT-KSA V6.2 | الترسانة المستقرة (بدون انهيار + قائمة متقدمة)");
 
 (function() {
     // 1) إعداد الذاكرة
@@ -6,10 +6,6 @@ console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب الق
     if (window.ghostKsaActive) window.ghostObserver && window.ghostObserver.disconnect();
     window.ghostKsaActive = true;
     window.alertedGhosts = new Set();
-    
-    // إعداد رادار الكلمات المفتاحية
-    var targetKeyword = prompt("🛡️ نظام Gh0sT-KSA\nأدخل كلمة مفتاحية لمراقبتها في العام (سيصيح الرادار عند كتابتها):", "مخفي");
-    if(!targetKeyword) targetKeyword = "مخفي";
 
     // 2) أكواد التصميم (CSS)
     var styles = document.createElement('style');
@@ -37,16 +33,12 @@ console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب الق
         .ghost-alert-header { font-weight: bold; color: #e74c3c; margin-bottom: 5px; font-size: 13px; border-bottom: 1px solid #7f8c8d; padding-bottom: 5px; text-align: center; }
         .ghost-alert-body { font-size: 12px; line-height: 1.6; }
         .ghost-alert-body span { color: #f1c40f; font-weight: bold; }
-        
-        /* تمييز الرسائل المحذوفة */
-        .ghost-recovered-msg { border: 1px dashed red !important; opacity: 0.8; background: rgba(231, 76, 60, 0.1) !important; }
-        .ghost-recovered-label { color: red; font-size: 10px; font-weight: bold; margin-right: 5px; }
 
         @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     `;
     document.head.appendChild(styles);
 
-    // 3) درع منع الطرد (Anti-Kick Shield) + حفظ الدالة الأصلية
+    // 3) درع منع الطرد (Anti-Kick Shield)
     if(typeof window.kick === 'function') {
         window.originalKick = window.kick;
         window.kick = function() { console.log("🛡️ Gh0sT Shield: تم صد أمر طرد محلي!"); };
@@ -86,26 +78,11 @@ console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب الق
         });
     }
 
-    // 6) نظام الرادار (مخفيين + كلمات مفتاحية)
+    // 6) نظام الرادار (دخول المخفيين)
     if (!document.getElementById("ghost-radar-container")) {
         var container = document.createElement("div");
         container.id = "ghost-radar-container";
         document.body.appendChild(container);
-    }
-
-    function createAlert(title, line1, line2) {
-        var toast = document.createElement("div");
-        toast.className = "ghost-alert";
-        toast.onclick = function() { toast.remove(); }; 
-        toast.innerHTML = `
-            <div class="ghost-alert-header">${title}</div>
-            <div class="ghost-alert-body">
-                <div>${line1}</div>
-                <div>${line2}</div>
-            </div>
-        `;
-        document.getElementById("ghost-radar-container").appendChild(toast);
-        setTimeout(function() { toast.remove(); }, 8000); 
     }
 
     function checkHiddenUsers() {
@@ -133,39 +110,25 @@ console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب الق
                 if (userId && !window.alertedGhosts.has(userId)) {
                     window.alertedGhosts.add(userId); 
                     var name = userEl.getAttribute("n") ? userEl.getAttribute("n").trim() : "غير معروف";
-                    createAlert("🚨 تم رصد دخول مخفي", "الاسم: <span>" + name + "</span>", "رقم العضوية: <span>" + userId + "</span>");
+                    
+                    var toast = document.createElement("div");
+                    toast.className = "ghost-alert";
+                    toast.onclick = function() { toast.remove(); }; 
+                    toast.innerHTML = `
+                        <div class="ghost-alert-header">🚨 تم رصد دخول مخفي</div>
+                        <div class="ghost-alert-body">
+                            <div>الاسم: <span>` + name + `</span></div>
+                            <div>رقم العضوية: <span>` + userId + `</span></div>
+                        </div>
+                    `;
+                    document.getElementById("ghost-radar-container").appendChild(toast);
+                    setTimeout(function() { toast.remove(); }, 8000); 
                 }
             }
         });
     }
 
-    // 7) صائد الرسائل المحذوفة ورادار الكلمات
-    window.chatSpyObserver = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if(mutation.addedNodes && mutation.addedNodes.length > 0) {
-                mutation.addedNodes.forEach(function(node) {
-                    if(node.innerText && node.innerText.includes(targetKeyword)) {
-                        createAlert("🎯 رادار الكلمات المفتاحية", "تم رصد كلمة: <span>" + targetKeyword + "</span>", "النص: " + node.innerText.substring(0, 30) + "...");
-                    }
-                });
-            }
-            if(mutation.removedNodes && mutation.removedNodes.length > 0) {
-                mutation.removedNodes.forEach(function(node) {
-                    if(node.nodeType === 1 && (node.classList.contains('uzr') || node.classList.contains('msg'))) {
-                        node.classList.add('ghost-recovered-msg');
-                        var label = document.createElement('span');
-                        label.className = 'ghost-recovered-label';
-                        label.innerText = '[محاولة حذف]';
-                        node.insertBefore(label, node.firstChild);
-                        if(mutation.target) mutation.target.appendChild(node);
-                    }
-                });
-            }
-        });
-    });
-    window.chatSpyObserver.observe(document.body, { childList: true, subtree: true });
-
-    // 8) القائمة الذكية (بالترتيب الجديد والدمج)
+    // 7) القائمة الذكية (مرتبة ومدمجة)
     function enableSmartMenu() {
         document.querySelectorAll('#users .uzr').forEach(function(user) {
             if (!user.querySelector('.u-pic')) return; 
@@ -204,7 +167,6 @@ console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب الق
                         menu.style.left = (e.pageX + 15) + 'px'; menu.style.top = (e.pageY) + 'px';
                     }
 
-                    // الترتيب المطلوب بدقة
                     menu.innerHTML = `
                         <div class="ghost-menu-item" id="btn-profile">👤 فتح البروفايل</div>
                         <div class="ghost-menu-item" id="btn-private">💬 رسالة خاصة</div>
@@ -251,7 +213,6 @@ console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب الق
                     document.getElementById('btn-id-actions').onclick = function() {
                         var targetId = (encryptedId !== "غير متوفر") ? encryptedId : userId;
                         prompt("انسخ المعرف للبحث عنه:", targetId); 
-                        // محاولة وضع المعرف في مربع البحث تلقائياً إذا كان موجوداً
                         var searchBox = document.getElementById('usearch');
                         if (searchBox) { searchBox.value = targetId; searchBox.dispatchEvent(new Event('keyup')); }
                         menu.remove();
@@ -304,15 +265,30 @@ console.log("Gh0sT-KSA V6.1 | الترسانة المنظمة (ترتيب الق
         });
     }
     
-    // 9) المحرك الأساسي
+    // 8) المحرك الأساسي (مزود بمُنظم سرعة Throttle لمنع الانهيار)
+    var isProcessing = false;
     window.ghostObserver = new MutationObserver(function() {
+        if (isProcessing) return; // منع التكرار السريع
+        
         var searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
-        processUsers(); checkHiddenUsers(); enableSmartMenu();
+        
+        isProcessing = true;
+        
+        // تنفيذ العمليات
+        processUsers(); 
+        checkHiddenUsers(); 
+        enableSmartMenu();
+        
+        // تحرير المحرك بعد 300 جزء من الثانية (يضمن أداءً صاروخياً بدون تعليق المتصفح)
+        setTimeout(function() { isProcessing = false; }, 300);
     });
+    
     window.ghostObserver.observe(document.body, { childList: true, subtree: true });
     
+    // التشغيل الأول
     processUsers(); checkHiddenUsers(); enableSmartMenu();
-    alert("✅ Gh0sT-KSA V6.1 Activated!\n\n- تم ترتيب القائمة الذكية بدقة كما طلبت.\n- تم دمج أدوات النسخ والبحث.\n- درع الطرد نشط مع إمكانية طردك للآخرين.");
+    
+    alert("✅ Gh0sT-KSA V6.2 Activated!\n\n- تم حل مشكلة الانهيار بالكامل (تم إضافة مُنظم سرعة).\n- تم إزالة رادار الكلمات.\n- القائمة الذكية المدمجة تعمل بكفاءة.");
 
 })();
