@@ -1,4 +1,4 @@
-console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع + رادار + قائمة ذكية)");
+console.log("Gh0sT-KSA V5.2 | القناص الدقيق (تصحيح شامل + حصر النطاق)");
 
 (function() {
     // 1) إعداد الذاكرة وإيقاف النسخ السابقة
@@ -11,94 +11,44 @@ console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع
     var styles = document.createElement('style');
     styles.innerHTML = `
         .uzr { border-right: none !important; border-left: none !important; } 
-        /* شاشة الإقلاع */
-        #ghost-boot-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 20, 25, 0.95);
-            z-index: 9999999; display: flex; justify-content: center; align-items: center; direction: rtl; font-family: Tahoma, sans-serif;
-            backdrop-filter: blur(5px); transition: opacity 0.5s;
-        }
-        .boot-box { background: #1a252f; border: 2px solid #3498db; border-radius: 10px; padding: 20px; width: 320px; color: #ecf0f1; box-shadow: 0 0 20px rgba(52, 152, 219, 0.5); }
-        .boot-title { text-align: center; font-size: 18px; font-weight: bold; color: #3498db; margin-bottom: 15px; border-bottom: 1px solid #34495e; padding-bottom: 10px; }
-        .boot-check { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; }
-        .boot-check span.status { color: #2ecc71; font-weight: bold; }
-        .boot-instructions { margin-top: 15px; padding: 10px; background: #2c3e50; border-radius: 5px; font-size: 12px; color: #bdc3c7; line-height: 1.6; }
-        .boot-btn { display: block; width: 100%; padding: 10px; margin-top: 15px; background: #3498db; color: white; text-align: center; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .boot-btn:hover { background: #2980b9; }
-
+        #users .uzr { cursor: pointer !important; }
+        
         /* القائمة الذكية */
         .ghost-smart-menu {
             position: absolute; background: #1a252f; color: #fff; padding: 5px; border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 999999; display: flex; flex-direction: column; gap: 4px;
-            min-width: 140px; font-family: Tahoma, sans-serif; font-size: 13px; direction: rtl; border: 1px solid #34495e;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8); z-index: 9999999; display: flex; flex-direction: column; gap: 4px;
+            min-width: 150px; font-family: Tahoma, sans-serif; font-size: 13px; direction: rtl; border: 1px solid #34495e;
         }
-        .ghost-menu-item { padding: 8px; cursor: pointer; border-radius: 4px; text-align: right; transition: background 0.2s; }
-        .ghost-menu-item:hover { background: #2c3e50; color: #3498db; }
-        .ghost-menu-close { background: #c0392b; color: white; border-radius: 4px; text-align: center; padding: 6px; cursor: pointer; margin-top: 4px; }
+        .ghost-menu-item { padding: 10px; cursor: pointer; border-radius: 4px; text-align: right; transition: background 0.2s; border-bottom: 1px solid #2c3e50; }
+        .ghost-menu-item:hover { background: #2c3e50; color: #3498db; font-weight: bold; }
+        .ghost-menu-item:last-child { border-bottom: none; }
+        .ghost-menu-close { background: #c0392b; color: white; border-radius: 4px; text-align: center; padding: 8px; cursor: pointer; margin-top: 4px; font-weight: bold; }
 
-        /* حاوية الرادار */
-        #ghost-radar-container { position: fixed; top: 15px; right: 15px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; }
+        /* حاوية الرادار الجديد */
+        #ghost-radar-container { position: fixed; top: 15px; left: 15px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; }
         .ghost-alert { 
-            background: #2c3e50; border-right: 4px solid #e74c3c; border-radius: 5px; padding: 12px; width: 280px; 
-            color: white; font-family: Tahoma; direction: rtl; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; animation: slideInRight 0.3s ease;
+            background: rgba(44, 62, 80, 0.95); border-left: 5px solid #e74c3c; border-radius: 8px; padding: 10px; width: 250px; 
+            color: white; font-family: Tahoma; direction: rtl; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; animation: slideInLeft 0.4s ease;
         }
-        .ghost-alert-header { font-weight: bold; color: #e74c3c; margin-bottom: 8px; font-size: 14px; text-align: center; border-bottom: 1px solid #34495e; padding-bottom: 5px; }
-        .ghost-alert-body { display: flex; align-items: center; gap: 10px; }
-        .ghost-alert-img { width: 40px; height: 40px; border-radius: 5px; border: 1px solid #7f8c8d; }
-        .ghost-alert-info { font-size: 12px; line-height: 1.5; }
-        .ghost-alert-info strong { color: #3498db; }
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .ghost-alert-header { font-weight: bold; color: #e74c3c; margin-bottom: 5px; font-size: 13px; border-bottom: 1px solid #7f8c8d; padding-bottom: 5px; text-align: center; }
+        .ghost-alert-body { font-size: 12px; line-height: 1.6; }
+        .ghost-alert-body span { color: #f1c40f; font-weight: bold; }
+        @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     `;
     document.head.appendChild(styles);
 
-    // 3) شاشة التفعيل
-    function showBootScreen() {
-        var boot = document.createElement('div');
-        boot.id = 'ghost-boot-screen';
-        boot.innerHTML = `
-            <div class="boot-box">
-                <div class="boot-title">Gh0sT-KSA V5.1 System</div>
-                <div class="boot-check"><span class="status">[✔]</span> تهيئة نظام الاختراق المطور</div>
-                <div class="boot-check"><span class="status">[✔]</span> تفعيل الرادار المتقدم</div>
-                <div class="boot-check"><span class="status">[✔]</span> كشف جميع الرتب المخفية</div>
-                <div class="boot-check"><span class="status">[✔]</span> حقن القائمة الذكية</div>
-                
-                <div class="boot-instructions">
-                    <b>📌 التعليمات:</b><br>
-                    - اضغط على أي عضو لفتح القائمة الذكية.<br>
-                    - تم إصلاح الأخطاء وتوافق القائمة مع الجميع.<br>
-                    - الرادار سيعمل تلقائياً بدقة عالية.
-                </div>
-                <button class="boot-btn" id="start-ghost">بدء التشغيل</button>
-            </div>
-        `;
-        document.body.appendChild(boot);
-        document.getElementById('start-ghost').onclick = function() {
-            boot.style.opacity = '0';
-            setTimeout(function() { boot.remove(); }, 500);
-        };
-    }
-    showBootScreen();
-
-    // إغلاق أي قائمة ذكية عند النقر بعيداً
+    // 3) إغلاق القائمة عند النقر في أي مكان
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('.ghost-smart-menu') && !e.target.closest('.uzr')) {
+        if (!e.target.closest('.ghost-smart-menu') && !e.target.closest('#users .uzr')) {
             document.querySelectorAll('.ghost-smart-menu').forEach(function(m) { m.remove(); });
         }
     });
 
-    // 4) كشف الرتب وإصلاح الإطارات (بالمحرك القديم القوي)
-    function showAllHigherRanksOnlyHidden() {
+    // 4) كشف الرتب وإصلاح الإطارات
+    function processUsers() {
         document.querySelectorAll('.btn').forEach(function(el) { el.style.display = 'block'; });
         document.querySelectorAll('[class^="itarr"]').forEach(function(el) { el.remove(); });
         
-        if (typeof _ma56zznz2 !== 'undefined' && Array.isArray(_ma56zznz2)) {
-            _ma56zznz2.forEach(function(obj) {
-                document.querySelectorAll('.' + obj.cls).forEach(function(el) {
-                    el.classList.remove(obj.cls); el.style.display = 'block';
-                });
-            });
-        }
-
         document.querySelectorAll('.uzr').forEach(function(el) {
             var isHiddenStyle = el.style.maxHeight === '0px' || el.style.display === 'none';
             var hasS4 = el.querySelector('img.ustat[src*="s4.png"]');
@@ -107,24 +57,18 @@ console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع
             if (isHiddenStyle || hasS4 || hasHiddenClass) {
                 el.style.setProperty('display', 'block', 'important');
                 el.style.setProperty('max-height', 'none', 'important');
-                el.style.setProperty('height', 'auto', 'important');
                 el.style.setProperty('opacity', '1', 'important');
                 el.classList.remove('__rv_me', 'me');
-                
                 el.querySelectorAll('[style*="display: none"]').forEach(function(inner) {
                     inner.style.setProperty('display', 'block', 'important');
                 });
-                
                 var ustat = el.querySelector("img.ustat, img[src*='s0.png']");
                 if (ustat && !ustat.src.includes('s4.png') && (hasHiddenClass || isHiddenStyle)) {
                     ustat.src = 'imgs/s4.png';
                 }
             }
-        });
-    }
-
-    function fixHiddenFrames() {
-        document.querySelectorAll('.uzr').forEach(function(el) {
+            
+            // إصلاح الإطارات
             var style = window.getComputedStyle(el);
             if (style.width === '0px' || style.height === '0px') { el.style.width = ''; el.style.height = ''; }
             var frameImg = el.querySelector('.u-pic img[class^="itarr_"]');
@@ -137,7 +81,7 @@ console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع
         });
     }
 
-    // 5) نظام الرادار الاحترافي
+    // 5) نظام الرادار الاحترافي والمحدث
     if (!document.getElementById("ghost-radar-container")) {
         var container = document.createElement("div");
         container.id = "ghost-radar-container";
@@ -145,7 +89,24 @@ console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع
     }
 
     function checkHiddenUsers() {
-        document.querySelectorAll('.uzr.inroom').forEach(function(userEl) {
+        // تنظيف الذاكرة: إذا خرج المخفي من القائمة، امسحه من الذاكرة لكي يتنبه السكريبت عند عودته
+        var currentGhostsInDom = new Set();
+        document.querySelectorAll('#users .uzr.inroom').forEach(function(userEl) {
+            var statusImg = userEl.querySelector('img.ustat');
+            if (statusImg && statusImg.src.includes('s4.png')) {
+                var uidClass = Array.from(userEl.classList).find(function(c) { return c.startsWith('uid'); });
+                if (uidClass) currentGhostsInDom.add(uidClass.slice(3));
+            }
+        });
+        
+        window.alertedGhosts.forEach(function(id) {
+            if (!currentGhostsInDom.has(id)) {
+                window.alertedGhosts.delete(id); // مسح من الذاكرة عند الخروج
+            }
+        });
+
+        // إطلاق التنبيهات للجدد
+        document.querySelectorAll('#users .uzr.inroom').forEach(function(userEl) {
             var statusImg = userEl.querySelector('img.ustat');
             if (statusImg && statusImg.src.includes('s4.png')) {
                 var uidClass = Array.from(userEl.classList).find(function(c) { return c.startsWith('uid'); });
@@ -154,44 +115,29 @@ console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع
                 if (userId && !window.alertedGhosts.has(userId)) {
                     window.alertedGhosts.add(userId); 
                     
-                    var name = userEl.getAttribute("n") || "بدون اسم";
-                    var pic = "pic/unknown.png";
-                    var picDiv = userEl.querySelector('.u-pic');
-                    if (picDiv) {
-                        var bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
-                        var match = bg.match(/url\(["']?(.*?)["']?\)/);
-                        if (match && match[1]) pic = match[1].startsWith('http') ? match[1] : window.location.origin + '/' + match[1].replace(/^\/+/, '');
-                    }
-
+                    var name = userEl.getAttribute("n") ? userEl.getAttribute("n").trim() : "غير معروف";
+                    
                     var toast = document.createElement("div");
                     toast.className = "ghost-alert";
                     toast.onclick = function() { toast.remove(); }; 
                     toast.innerHTML = `
-                      <div class="ghost-alert-header">⚠️ رادار المخفيين ⚠️</div>
+                      <div class="ghost-alert-header">🚨 تم رصد دخول مخفي</div>
                       <div class="ghost-alert-body">
-                        <img src="` + pic + `" class="ghost-alert-img">
-                        <div class="ghost-alert-info">
-                            <div><strong>الاسم:</strong> ` + name + `</div>
-                            <div><strong>العضوية:</strong> ` + userId + `</div>
-                            <div style="color: #e74c3c; margin-top: 3px;">قام بدخول الغرفة مخفياً</div>
-                        </div>
+                            <div>الاسم: <span>` + name + `</span></div>
+                            <div>الآي دي: <span>` + userId + `</span></div>
                       </div>
                     `;
                     document.getElementById("ghost-radar-container").appendChild(toast);
-                    setTimeout(function() { toast.remove(); }, 8000); 
+                    setTimeout(function() { toast.remove(); }, 7000); 
                 }
             }
         });
     }
 
-    // 6) القائمة الذكية المحدثة
+    // 6) القائمة الذكية (محصورة في قسم المتواجدين فقط #users)
     function enableSmartMenu() {
-        document.querySelectorAll('.uzr').forEach(function(user) {
-            // تجاهل سطور الدردشة العامة لكي لا تفتح القائمة بالخطأ
-            if (!user.querySelector('.u-pic')) return; 
-            
-            user.style.setProperty('cursor', 'pointer', 'important');
-
+        // لاحظ الفلتر القوي هنا: #users .uzr فقط!
+        document.querySelectorAll('#users .uzr').forEach(function(user) {
             if (!user._menuBound) {
                 user.addEventListener("click", function(e) {
                     e.stopImmediatePropagation();
@@ -200,11 +146,11 @@ console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع
                     document.querySelectorAll('.ghost-smart-menu').forEach(function(m) { m.remove(); });
 
                     var uidClass = Array.from(user.classList).find(function(c) { return c.startsWith("uid"); });
-                    var userId = uidClass ? uidClass.slice(3) : null;
-                    var userName = user.getAttribute("n") || "بدون اسم";
-                    var encryptedId = null;
-                    var userIp = user.getAttribute("i") || user.getAttribute("ip") || user.title || "محمي بالسيرفر";
+                    var userId = uidClass ? uidClass.slice(3) : "غير معروف";
+                    var userName = user.getAttribute("n") ? user.getAttribute("n").trim() : "بدون اسم";
+                    var userIp = user.getAttribute("i") || user.getAttribute("ip") || "محمي بالسيرفر";
 
+                    var encryptedId = "غير متوفر";
                     var picEl = user.querySelector('.u-pic');
                     if (picEl) {
                         var onclickStr = picEl.getAttribute('onclick') || "";
@@ -221,49 +167,48 @@ console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع
                         menu.style.transform = 'translate(-50%, -50%)';
                         menu.style.position = 'fixed';
                     } else {
-                        menu.style.left = (e.pageX + 10) + 'px';
+                        menu.style.left = (e.pageX + 15) + 'px';
                         menu.style.top = (e.pageY) + 'px';
                     }
 
                     menu.innerHTML = `
                         <div class="ghost-menu-item" id="btn-profile">👤 فتح البروفايل</div>
                         <div class="ghost-menu-item" id="btn-private">💬 فتح الخاص</div>
-                        <div class="ghost-menu-item" id="btn-copy-id">🔑 نسخ المعرف (` + (userId || '') + `)</div>
+                        <div class="ghost-menu-item" id="btn-copy-id">🔑 نسخ المعرف</div>
                         <div class="ghost-menu-item" id="btn-copy-name">📝 نسخ الاسم</div>
-                        <div class="ghost-menu-item" id="btn-copy-ip">🌐 نسخ الآي بي</div>
                         <div class="ghost-menu-close">إغلاق ❌</div>
                     `;
 
                     document.body.appendChild(menu);
 
+                    // 1. فتح البروفايل (محاكاة نقرة الموقع الأصلية)
                     document.getElementById('btn-profile').onclick = function() {
-                        if (encryptedId && typeof upro === 'function') upro(encryptedId);
-                        else if (userId && typeof uprof === 'function') uprof(userId);
-                        else alert("تعذر فتح البروفايل لهذا العضو.");
+                        if (picEl) {
+                            picEl.click(); // نجعل الموقع يفتح البروفايل بطريقته الخاصة ليضمن التوافق
+                        } else {
+                            alert("لا يمكن فتح البروفايل.");
+                        }
                         menu.remove();
                     };
                     
+                    // 2. فتح الخاص
                     document.getElementById('btn-private').onclick = function() {
-                        if (userId && typeof window.openw === 'function') window.openw(userId, true);
+                        if (userId !== "غير معروف" && typeof window.openw === 'function') {
+                            window.openw(userId, true);
+                        }
                         menu.remove();
                     };
                     
+                    // 3. نسخ المعرف
                     document.getElementById('btn-copy-id').onclick = function() {
-                        var textToCopy = encryptedId ? encryptedId : userId;
-                        if(navigator.clipboard) navigator.clipboard.writeText(textToCopy);
-                        alert("تم النسخ:\\n" + textToCopy);
+                        var textToCopy = (encryptedId !== "غير متوفر") ? encryptedId : userId;
+                        prompt("انسخ المعرف من هنا:", textToCopy);
                         menu.remove();
                     };
                     
+                    // 4. نسخ الاسم
                     document.getElementById('btn-copy-name').onclick = function() {
-                        if(navigator.clipboard) navigator.clipboard.writeText(userName);
-                        alert("تم نسخ الاسم:\\n" + userName);
-                        menu.remove();
-                    };
-
-                    document.getElementById('btn-copy-ip').onclick = function() {
-                        if (userIp !== "محمي بالسيرفر" && navigator.clipboard) navigator.clipboard.writeText(userIp);
-                        alert("الآي بي:\\n" + userIp);
+                        prompt("انسخ الاسم من هنا:", userName);
                         menu.remove();
                     };
                     
@@ -276,22 +221,23 @@ console.log("Gh0sT-KSA V5.1 | الإصدار المستقر (شاشة إقلاع
         });
     }
     
-    // 7) المحرك الأساسي (مراقبة مستمرة)
+    // 7) المحرك الأساسي
     window.ghostObserver = new MutationObserver(function() {
         var searchBox = document.getElementById('usearch');
         if (searchBox && searchBox.value.trim().length > 0) return;
         
-        showAllHigherRanksOnlyHidden();
-        fixHiddenFrames();
+        processUsers();
         checkHiddenUsers();
         enableSmartMenu();
     });
     
     window.ghostObserver.observe(document.body, { childList: true, subtree: true });
     
-    showAllHigherRanksOnlyHidden();
-    fixHiddenFrames();
+    processUsers();
     checkHiddenUsers();
     enableSmartMenu();
+
+    // رسالة نجاح مبسطة
+    alert("✅ تم تشغيل نظام Gh0sT-KSA V5.2 بنجاح!\n\n- القائمة الذكية تعمل الآن فقط في قائمة المتواجدين.\n- تم حل مشكلة التنبيهات.\n- تم تحسين نسخ الأسماء والمعرفات.");
 
 })();
