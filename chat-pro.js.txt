@@ -1,7 +1,7 @@
 /* 💠 Project: Nexus Ghost Interface
    👤 Author: Gh0sT-Sa
-   🚀 Status: Universal JawalHost Edition (Yemen, Najd, Mamlaka, Gulf)
-   Version: 1.5.0
+   🚀 Status: Quad-Engine (JawalHost, PhoneHost, U-Cam, TigerHost) Integrated
+   Version: 1.8.0
 */
 
 (function() {
@@ -11,14 +11,9 @@
         config: {
             name: "Nexus Ghost Interface",
             author: "Gh0sT-Sa",
-            version: "1.5.0"
+            version: "1.8.0"
         },
-        env: { 
-            device: "Detecting...", 
-            host: "Unknown", 
-            isJawalHost: false,
-            isAuthorized: true 
-        },
+        env: { device: "Detecting...", host: "Unknown", engine: "None" },
         checkList: { domReady: false, engineFound: false, adapterLoaded: false },
 
         init: function() {
@@ -40,100 +35,112 @@
 
         identifyEngine: function() {
             const h = window.location.hostname.toLowerCase();
-            
-            // نظام التعرف الذكي على "نواة جوال هوست" عبر البصمات البرمجية
-            const jawalHostFingerprints = [
-                window.jawalHost,
-                typeof _ma56zznz2 !== 'undefined',
-                typeof _m56zznz2 !== 'undefined',
-                document.querySelector('script[src*="x3.js"]'),
-                h.includes('ksa') || h.includes('njd') || h.includes('alkhalij') || h.includes('7alij')
-            ];
+            const pageContent = document.documentElement.innerHTML;
 
-            if (jawalHostFingerprints.some(f => f)) {
-                this.env.host = "JawalHost_Universal";
-                this.env.isJawalHost = true;
-                this.checkList.engineFound = true;
-            } else if (window.phoneHost) {
-                this.env.host = "PhoneHost";
-            } else if (document.querySelector('script[src*="tiger"]')) {
+            // 1. بصمة تايجر هوست (Tiger Host) - اكتشاف عبر المجلدات والمعرفات الفريدة
+            if (window.TigerHost || document.querySelector('script[src*="tiger"]') || pageContent.includes('Tiger_Host')) {
                 this.env.host = "TigerHost";
+                this.env.engine = "Tiger Host Engine";
+                this.checkList.engineFound = true;
+            }
+            // 2. بصمة يو كام هوست (U-Cam Host)
+            else if (window.MSDevice || window.SimplePeer || document.querySelector('script[src*="ms.js"]')) {
+                this.env.host = "UCamHost";
+                this.env.engine = "U-Cam Host Engine";
+                this.checkList.engineFound = true;
+            } 
+            // 3. بصمة فون هوست (PhoneHost)
+            else if (window.phoneHost || typeof upro === 'function') {
+                this.env.host = "PhoneHost";
+                this.env.engine = "PhoneHost Engine";
+                this.checkList.engineFound = true;
+            } 
+            // 4. بصمة جوال هوست (JawalHost)
+            else if (window.jawalHost || typeof _ma56zznz2 !== 'undefined' || pageContent.includes('x3.js')) {
+                this.env.host = "JawalHost_Universal";
+                this.env.engine = "JawalHost Engine";
+                this.checkList.engineFound = true;
             }
         },
 
         adapters: {
+            // محول تايجر هوست (TigerHost) - مستخرج من xC.js
+            TigerHost: {
+                run: function() { this.applyBypass(); },
+                refresh: function() { this.applyBypass(); },
+                applyBypass: function() {
+                    // إظهار الأزرار المخفية والقوائم المنبثقة (Tiger Specific)
+                    const selectors = '.btn, .t-btn, .ppop-color-container, .clickaway-container, [style*="display: none"]';
+                    document.querySelectorAll(selectors).forEach(el => {
+                        if (el.classList.contains('u-pic')) return;
+                        el.style.setProperty('display', 'block', 'important');
+                        el.style.setProperty('visibility', 'visible', 'important');
+                    });
+
+                    // إزالة الإطارات والقيود (Tiger Frames)
+                    document.querySelectorAll('.itarr, [class^="itarr_"], .tiger-frame').forEach(el => el.remove());
+
+                    // كشف المستخدمين المخفيين (Bypass Hidden in Tiger)
+                    document.querySelectorAll('.uzr').forEach(el => {
+                        const style = window.getComputedStyle(el);
+                        if (style.maxHeight === '0px' || style.display === 'none' || el.classList.contains('th-hidden')) {
+                            el.style.setProperty('display', 'block', 'important');
+                            el.style.setProperty('max-height', 'none', 'important');
+                            el.style.setProperty('visibility', 'visible', 'important');
+                        }
+                    });
+                }
+            },
+
+            // محول يو كام هوست (UCamHost)
+            UCamHost: {
+                run: function() { this.applyBypass(); },
+                refresh: function() { this.applyBypass(); },
+                applyBypass: function() {
+                    const selectors = '.btn, .control-btn, .u-admin-only';
+                    document.querySelectorAll(selectors).forEach(el => {
+                        el.style.setProperty('display', 'block', 'important');
+                        el.style.setProperty('visibility', 'visible', 'important');
+                    });
+                    document.querySelectorAll('.user-frame, [class^="itarr"]').forEach(el => el.remove());
+                }
+            },
+
+            // محول فون هوست (PhoneHost)
+            PhoneHost: {
+                run: function() { this.applyBypass(); },
+                refresh: function() { this.applyBypass(); },
+                applyBypass: function() {
+                    const selectors = '.btn, .minix, [id^="ahmed"], [id^="sultan"]';
+                    document.querySelectorAll(selectors).forEach(el => {
+                        el.style.setProperty('display', 'block', 'important');
+                        el.style.setProperty('visibility', 'visible', 'important');
+                    });
+                    document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
+                }
+            },
+
+            // محول جوال هوست الموحد (Universal JawalHost)
             JawalHost_Universal: {
                 run: function() { this.applyUniversalBypass(); },
                 refresh: function() { this.applyUniversalBypass(); },
                 applyUniversalBypass: function() {
-                    // 1) إظهار الأزرار المخفية (تجميع كافة معرفات الخليج والمملكة ونجد واليمن)
-                    // تشمل: المعرفات التي تبدأ بـ sultan, ahmed, khaleej وكلاسات minix و btn
-                    const universalSelectors = [
-                        '.btn', '.minix', '.mini', 
-                        '[id^="ahmed"]', '[id^="sultan"]', '[id^="khaleej"]', 
-                        '[style*="display: none"]', '[style*="visibility: hidden"]'
-                    ].join(',');
-
+                    const universalSelectors = '.btn, .minix, .mini, [id^="ahmed"], [id^="sultan"]';
                     document.querySelectorAll(universalSelectors).forEach(el => {
-                        // استثناء العناصر التي لا نريد العبث بها (مثل عناصر النظام الأساسية)
-                        if (el.classList.contains('u-pic') || el.id === 'l1' || el.id === 'l2') return;
-
                         el.style.setProperty('display', 'block', 'important');
-                        el.style.setProperty('visibility', 'visible', 'important');
-                        el.style.setProperty('opacity', '1', 'important');
-                        el.style.setProperty('max-height', 'none', 'important');
                         el.style.setProperty('z-index', '999999', 'important');
                     });
-
-                    // 2) إزالة الإطارات المقيدة (itarr) نهائياً
                     document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
-
-                    // 3) معالجة المصفوفات الغامضة (Ma و M) المكتشفة في كافة النسخ
-                    ['_ma56zznz2', '_m56zznz2'].forEach(matrixName => {
-                        if (typeof window[matrixName] !== 'undefined' && Array.isArray(window[matrixName])) {
-                            window[matrixName].forEach(obj => {
+                    ['_ma56zznz2', '_m56zznz2'].forEach(m => {
+                        if (window[m] && Array.isArray(window[m])) {
+                            window[m].forEach(obj => {
                                 if (obj.cls) {
-                                    document.querySelectorAll(`.${obj.cls}`).forEach(el => {
-                                        el.classList.remove(obj.cls);
-                                        el.style.setProperty('display', 'block', 'important');
+                                    document.querySelectorAll(`.${obj.cls}`).forEach(e => {
+                                        e.classList.remove(obj.cls);
+                                        e.style.setProperty('display', 'block', 'important');
                                     });
                                 }
                             });
-                        }
-                    });
-
-                    // 4) كشف المستخدمين المخفيين (Bypass Hidden Users)
-                    const userSelector = ".uzr[style*='max-height: 0'], .uzr[style*='max-height:0'], .uzr.hidden, .uzr[style*='display:none']";
-                    document.querySelectorAll(userSelector).forEach(el => {
-                        el.style.setProperty('display', 'block', 'important');
-                        el.style.setProperty('max-height', 'none', 'important');
-                        el.style.setProperty('visibility', 'visible', 'important');
-
-                        // منع سكريبت الشات من إعادة الوسم عبر Patching
-                        if (!el._nexus_patched) {
-                            const originalAdd = el.classList.add;
-                            el.classList.add = function(...args) {
-                                const forbidden = ['__rv_me', 'hidden', 'ahmed', 'mhmood', 'sultan'];
-                                const filtered = args.filter(cls => !forbidden.includes(cls));
-                                return originalAdd.apply(this, filtered);
-                            };
-                            el._nexus_patched = true;
-                        }
-
-                        // تصحيح أيقونة المتواجدين (ustat)
-                        const ustat = el.querySelector("img.ustat");
-                        if (ustat && !ustat.src.includes('s4.png')) {
-                            ustat.src = 'imgs/s4.png';
-                        }
-                    });
-
-                    // 5) إصلاح شفافية وتطابق ألوان النصوص (Topic & Hash Correction)
-                    document.querySelectorAll('.u-topic, .uhash').forEach(item => {
-                        const style = window.getComputedStyle(item);
-                        if (style.color === style.backgroundColor || style.opacity === '0' || style.display === 'none') {
-                            item.style.setProperty('color', '#000', 'important');
-                            item.style.setProperty('opacity', '1', 'important');
-                            item.style.setProperty('display', 'inline-block', 'important');
                         }
                     });
                 }
@@ -151,14 +158,14 @@
         renderConsoleArt: function() {
             const style = "color: #00ffff; background: #111; padding: 5px; border-radius: 5px; font-family: monospace;";
             console.log(`%c >>> ${this.config.name} v${this.config.version} BY ${this.config.author} <<< `, style);
-            console.log(`%c Target Engine: JawalHost Universal Kernel `, "color: #ffaa00; font-weight: bold;");
+            console.log(`%c Active Engine: ${this.env.engine} `, "color: #00ff00; font-weight: bold;");
             console.table(this.checkList);
         },
 
         startGlobalObserver: function() {
             const observer = new MutationObserver(() => {
-                if (this.env.isJawalHost && this.adapters.JawalHost_Universal) {
-                    this.adapters.JawalHost_Universal.refresh();
+                if (this.adapters[this.env.host]) {
+                    this.adapters[this.env.host].refresh();
                 }
             });
             observer.observe(document.body, { childList: true, subtree: true });
