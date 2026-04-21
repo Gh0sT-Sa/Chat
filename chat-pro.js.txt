@@ -1,7 +1,7 @@
 /* 💠 Project: Nexus Ghost Sovereign Ultimate
    👤 Author: Gh0sT-Sa
    🚀 Status: 45/45 Sovereign Features Active - Total Control
-   Version: 4.1.2 (Stable Edition - JawalHost Deep Visibility)
+   Version: 4.2.0 (Royal Edition - Flawless Engine Detection & Action Fix)
 */
 
 (function() {
@@ -16,7 +16,7 @@
         config: { 
             name: "Nexus Ghost Sovereign Ultimate", 
             author: "Gh0sT-Sa", 
-            version: "4.1.2",
+            version: "4.2.0",
             lang: {
                 host: { "JawalHost_Universal": "جوال هوست / ابن اليمن / نجد / الخليج", "PhoneUCam_Engine": "فون هوست / يو كام", "TigerHost_Engine": "تايقر هوست" },
                 os: { "Windows": "ويندوز", "Linux": "لينكس", "Mac OS": "ماك", "Android": "أندرويد", "iOS": "آيفون" },
@@ -62,11 +62,16 @@
             else this.env.browser = "Unknown";
         },
 
+        // 🛠️ التحديث الجذري للتعرف على محرك الشات لمنع التداخل
         identifyEngine: function() {
-            const page = document.documentElement.innerHTML;
-            if (page.includes('tiger') || window.TigerConfig) this.env.host = "TigerHost_Engine";
-            else if (page.includes('phonehost') || page.includes('ucam')) this.env.host = "PhoneUCam_Engine";
-            else this.env.host = "JawalHost_Universal";
+            if (typeof window.TigerConfig !== 'undefined' || document.querySelector('.tiger-frame') || document.querySelector('.tiger-user')) {
+                this.env.host = "TigerHost_Engine";
+            } else if (document.querySelector('.v-user') || document.querySelector('.v-cam-btn') || window.location.hostname.includes('phone') || window.location.hostname.includes('ucam')) {
+                this.env.host = "PhoneUCam_Engine";
+            } else {
+                // إذا لم يكن تايقر ولا فون، فهو بالضرورة الجيل الكلاسيكي (جوال هوست)
+                this.env.host = "JawalHost_Universal";
+            }
         },
 
         // [31, 33, 34] درع السيادة: مانع الطرد، الباند، وتثبيت الغرفة
@@ -167,7 +172,7 @@
                         ✅ الرادار الذكي (جميع النسخ)<br>
                         ✅ الدرع السيادي (مانع الطرد)<br>
                         ✅ الأرشيف الحي (Anti-Delete)<br>
-                        ✅ القائمة الذكية (نقر يمين / تعليق)<br>
+                        ✅ القائمة الذكية المحسنة (متوافق مع HTTP)<br>
                         ✅ كاشف البوتات والوهميين<br>
                         ✅ الدخول الصامت وتغيير البصمة<br>
                         ${this.env.host === 'PhoneUCam_Engine' ? '✅ رادار الكاميرات الخفية (مدعوم)' : '❌ رادار الكاميرات (خاص بيو كام/فون)'}
@@ -212,7 +217,7 @@
 
             this.toast(`
                 <div style="text-align:right; direction:rtl; font-family:sans-serif;">
-                    <b style="color:#00ffcc; font-size:15px;">${this.config.name} v4.1.2</b><br>
+                    <b style="color:#00ffcc; font-size:15px;">${this.config.name} v4.2.0</b><br>
                     <div style="margin-top:5px; font-size:12px; color:#ddd; line-height:1.6;">
                         👤 المبرمج: <span style="color:#fff;">${this.config.author}</span><br>
                         🌐 الدردشة: <span style="color:#ffc107;">${hostName}</span><br>
@@ -235,23 +240,69 @@
             setTimeout(() => { if(toast) toast.remove(); }, duration);
         },
 
+        // 🛠️ دالة نسخ ذكية تعمل حتى في المواقع غير المشفرة (HTTP)
+        copyToClipboard: function(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => this.toast("✅ تم النسخ بنجاح", 2000));
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    this.toast("✅ تم النسخ بنجاح", 2000);
+                } catch (error) {
+                    this.toast("❌ فشل النسخ (عذر من المتصفح)", 2000);
+                }
+                textArea.remove();
+            }
+        },
+
+        // 🛠️ دالة موحدة لتنفيذ مهام الطرد والباند لتناسب كل الشاتات
+        adminAction: function(actionType, cleanId) {
+            try {
+                if (actionType === 'kick') {
+                    if (typeof window.kickw === 'function') window.kickw(cleanId);
+                    else if (typeof window.kick === 'function') window.kick(cleanId);
+                    else if (typeof window.rkick === 'function') window.rkick(cleanId);
+                    else this.toast("❌ عذراً، دالة الطرد غير مدعومة بهذا الشات", 3000);
+                } else if (actionType === 'ban') {
+                    if (typeof window.banw === 'function') window.banw(cleanId);
+                    else if (typeof window.ban === 'function') window.ban(cleanId);
+                    else if (typeof window.rban === 'function') window.rban(cleanId);
+                    else this.toast("❌ عذراً، دالة الباند غير مدعومة بهذا الشات", 3000);
+                }
+            } catch(e) {
+                this.toast("❌ حدث خطأ أثناء تنفيذ الأمر", 3000);
+            }
+        },
+
         extractUserData: function(el) {
             const name = el.getAttribute("n")?.trim() || el.querySelector('.u-topic')?.textContent || "مجهول";
             const icon = el.querySelector('.u-ico')?.src || "";
             const hash = el.querySelector('.uhash')?.textContent || "مخفي";
-            let pic = "pic/unknown.png";
-            const picDiv = el.querySelector('.u-pic, .tiger-pic, .v-pic');
-            if (picDiv) {
-                const bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
-                const match = bg.match(/url\(["']?(.*?)["']?\)/);
-                if (match && match[1]) pic = match[1].startsWith('http') ? match[1] : window.location.origin + '/' + match[1].replace(/^\/+/, '');
+            
+            // 🛠️ حل مشكلة الصورة المصغرة: سحب الحجم الأصلي من data-pic إن وجد
+            let pic = el.getAttribute('data-pic'); 
+            if (!pic) {
+                const picDiv = el.querySelector('.u-pic, .tiger-pic, .v-pic');
+                if (picDiv) {
+                    const bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
+                    const match = bg.match(/url\(["']?(.*?)["']?\)/);
+                    if (match && match[1]) pic = match[1];
+                }
             }
+            if(!pic) pic = "pic/unknown.png";
+            if (!pic.startsWith('http')) pic = window.location.origin + '/' + pic.replace(/^\/+/, '');
+            
             return { name, pic, icon, hash };
         },
 
         checkHiddenRadar: function() {
             if (!this.settings.radarAlert) return;
-            // المراقبة أصبحت أوسع لتشمل من تم إزالة inroom منه من قبل الإدارة
             const selectors = '.uzr, .tiger-user, .v-user'; 
             document.querySelectorAll(selectors).forEach(el => {
                 const uidClass = [...el.classList].find(c => c.startsWith('uid'));
@@ -320,13 +371,14 @@
 
                 menu.style = `position:fixed; top:${y}px; left:${x}px; background:#1a1a1a; border:1px solid #00ffcc; border-radius:8px; padding:5px; z-index:100010; color:#fff; font-size:12px; min-width:140px; direction:rtl; font-family:sans-serif; box-shadow:0 4px 10px rgba(0,0,0,0.5);`;
                 
+                // 🛠️ ربط دوال النسخ والطرد الجديدة بالقائمة الذكية
                 menu.innerHTML = `
                     <div style="border-bottom:1px solid #333; padding:5px; text-align:center; font-weight:bold; color:#00ffcc; margin-bottom:5px;">إجراءات إدارية</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="navigator.clipboard.writeText('${data.name}')">📋 نسخ الاسم</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="window.open('${data.pic}')">🖼️ حفظ الصورة</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="navigator.clipboard.writeText('${statusTxt}')">📝 نسخ الحالة</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ffc107;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="if(typeof kickw==='function')kickw('${cleanId}')">🚪 طرد من الروم</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ff3e3e;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="if(typeof banw==='function')banw('${cleanId}')">🚫 باند نهائي</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="Nexus_Ghost.copyToClipboard('${data.name}')">📋 نسخ الاسم</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="window.open('${data.pic}', '_blank')">🖼️ حفظ الصورة (أصلية)</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="Nexus_Ghost.copyToClipboard('${statusTxt}')">📝 نسخ الحالة</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ffc107;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="Nexus_Ghost.adminAction('kick', '${cleanId}')">🚪 طرد من الروم</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ff3e3e;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="Nexus_Ghost.adminAction('ban', '${cleanId}')">🚫 باند نهائي</div>
                 `;
                 document.body.appendChild(menu);
                 
@@ -401,7 +453,6 @@
             document.querySelectorAll(targetSelector).forEach(el => {
                 const cleanId = (el.getAttribute('id') || el.getAttribute('n') || "").replace(/\D/g, '');
 
-                // إستراتيجية إظهار المخفيين الآمنة (نسخة 4.1.2)
                 const isGhost = el.querySelector('img.ustat[src*="s4.png"]');
                 const style = window.getComputedStyle(el);
                 
@@ -411,7 +462,6 @@
                     el.style.setProperty('opacity', '1', 'important');
                     el.style.setProperty('height', 'auto', 'important');
                     
-                    // إظهار نص الاسم الخاص بجوال هوست
                     const topic = el.querySelector('.u-topic');
                     if (topic) {
                         topic.style.setProperty('display', 'inline-block', 'important');
