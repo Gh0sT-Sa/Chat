@@ -1,0 +1,103 @@
+/* 💠 Project: Nexus Ghost Interface
+   👤 Author: Gh0sT-Sa
+   🚀 Status: Core Initialized
+*/
+
+(function() {
+    'use strict';
+
+    const Nexus_Ghost = {
+        config: {
+            name: "Nexus Ghost Interface",
+            author: "Gh0sT-Sa",
+            version: "1.1.0"
+        },
+        env: {
+            device: "Detecting...",
+            host: "Unknown",
+            isAuthorized: true
+        },
+
+        // مصفوفة التحقق (Checklist)
+        checkList: {
+            domReady: false,
+            hostIdentified: false,
+            adapterLoaded: false
+        },
+
+        init: function() {
+            this.detectEnv();
+            this.identifyHost();
+            this.renderConsoleArt();
+            this.runAdapter();
+            this.startGlobalObserver();
+        },
+
+        detectEnv: function() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) this.env.device = "Android";
+            else if (/iPhone|iPad/i.test(ua)) this.env.device = "iOS";
+            else if (/Windows/i.test(ua)) this.env.device = "Windows";
+            else this.env.device = "Linux/Other";
+            this.checkList.domReady = true;
+        },
+
+        identifyHost: function() {
+            const h = window.location.hostname;
+            // التعرف التلقائي بناءً على المتغيرات العالمية أو الرابط
+            if (window.jawalHost || typeof _ma56zznz2 !== 'undefined') this.env.host = "JawalHost";
+            else if (window.phoneHost) this.env.host = "PhoneHost";
+            else if (document.querySelector('script[src*="tiger"]')) this.env.host = "TigerHost";
+            else if (window.ucam) this.env.host = "UCamHost";
+            
+            if (this.env.host !== "Unknown") this.checkList.hostIdentified = true;
+        },
+
+        // قاعدة بيانات المحولات (سيتم ملؤها من ملفاتك)
+        adapters: {
+            JawalHost: {
+                showHidden: function() {
+                    // سيتم إضافة الكود هنا لاحقاً
+                }
+            },
+            PhoneHost: {
+                showHidden: function() {
+                    // سيتم إضافة الكود هنا لاحقاً
+                }
+            },
+            TigerHost: {
+                showHidden: function() {
+                    // سيتم إضافة الكود هنا لاحقاً
+                }
+            }
+        },
+
+        runAdapter: function() {
+            const activeHost = this.env.host;
+            if (this.adapters[activeHost]) {
+                this.adapters[activeHost].showHidden();
+                this.checkList.adapterLoaded = true;
+            }
+        },
+
+        renderConsoleArt: function() {
+            const style = "color: #00ffff; background: #111; padding: 5px; border-radius: 5px; font-family: monospace;";
+            console.log(`%c >>> ${this.config.name} v${this.config.version} BY ${this.config.author} <<< `, style);
+            console.table(this.checkList); // عرض قائمة الفحص كجدول أنيق
+        },
+
+        startGlobalObserver: function() {
+            const observer = new MutationObserver(() => {
+                this.runAdapter(); // إعادة التنفيذ عند حدوث تغييرات في الشات
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+    };
+
+    // التشغيل الفوري
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        Nexus_Ghost.init();
+    } else {
+        window.addEventListener("DOMContentLoaded", () => Nexus_Ghost.init());
+    }
+})();
