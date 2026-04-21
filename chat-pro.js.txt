@@ -210,4 +210,282 @@
         showWelcomeMessage: function() {
             const hostName = this.config.lang.host[this.env.host] || "غير معروف";
             const osName = this.config.lang.os[this.env.os] || this.env.os;
-            const browserName = this.config.
+            const browserName = this.config.lang.browser[this.env.browser] || this.env.browser;
+
+            this.toast(`
+                <div style="text-align:right; direction:rtl; font-family:sans-serif;">
+                    <b style="color:#00ffcc; font-size:15px;">${this.config.name} v4.1.1</b><br>
+                    <div style="margin-top:5px; font-size:12px; color:#ddd; line-height:1.6;">
+                        👤 المبرمج: <span style="color:#fff;">${this.config.author}</span><br>
+                        🌐 الدردشة: <span style="color:#ffc107;">${hostName}</span><br>
+                        💻 الجهاز: <span style="color:#fff;">${osName}</span><br>
+                        🌍 المتصفح: <span style="color:#fff;">${browserName}</span><br>
+                    </div>
+                    <hr style="border:0.5px solid #333; margin:8px 0;">
+                    <center style="color:#00ffcc; font-weight:bold; font-size:13px;">تـم تـفـعـيـل الـسـيـكـربـت بـنـجـاح</center>
+                </div>
+            `, 8000);
+        },
+
+        toast: function(html, duration = 6000) {
+            const container = document.getElementById("nexus-toast-container");
+            const toast = document.createElement("div");
+            toast.style = "background:rgba(15,15,15,0.95); border-right:4px solid #00ffcc; border-radius:8px; padding:15px; color:#fff; box-shadow:0 5px 15px rgba(0,0,0,0.5); pointer-events:auto; transition:all 0.5s ease; opacity:0; transform:translateY(-20px);";
+            toast.innerHTML = html;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = "1"; toast.style.transform = "translateY(0)"; }, 10);
+            setTimeout(() => { if(toast) toast.remove(); }, duration);
+        },
+
+        // [21] استخراج البيانات الحساسة (الرادار)
+        extractUserData: function(el) {
+            const name = el.getAttribute("n")?.trim() || el.querySelector('.u-topic')?.textContent || "مجهول";
+            const icon = el.querySelector('.u-ico')?.src || "";
+            const hash = el.querySelector('.uhash')?.textContent || "مخفي";
+            let pic = "pic/unknown.png";
+            const picDiv = el.querySelector('.u-pic, .tiger-pic, .v-pic');
+            if (picDiv) {
+                const bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
+                const match = bg.match(/url\(["']?(.*?)["']?\)/);
+                if (match && match[1]) pic = match[1].startsWith('http') ? match[1] : window.location.origin + '/' + match[1].replace(/^\/+/, '');
+            }
+            return { name, pic, icon, hash };
+        },
+
+        // [18-24, 38] رادار دخول المخفيين
+        checkHiddenRadar: function() {
+            if (!this.settings.radarAlert) return;
+            const selectors = '.uzr.inroom, .tiger-user.inroom, .v-user.inroom';
+            document.querySelectorAll(selectors).forEach(el => {
+                const uidClass = [...el.classList].find(c => c.startsWith('uid'));
+                if (!uidClass) return;
+
+                const isHidden = el.querySelector('img.ustat[src*="s4.png"]') || el.getAttribute('data-nexus-spy') === '1';
+
+                if (isHidden && !alertedUsers.has(uidClass)) {
+                    alertedUsers.add(uidClass);
+                    const user = this.extractUserData(el);
+                    if (this.settings.audioAlert) audioAlert.play();
+                    
+                    this.toast(`
+                        <div style="display:flex; align-items:center; gap:12px; direction:rtl; text-align:right;">
+                            <img src="${user.pic}" style="width:50px; height:50px; border-radius:10px; border:2px solid #ff3e3e;">
+                            <div style="flex-grow:1;">
+                                <div style="display:flex; align-items:center; gap:6px; font-weight:bold; color:#ff3e3e;">
+                                    ${user.name} ${user.icon ? `<img src="${user.icon}" style="height:16px;">` : ""}
+                                </div>
+                                <div style="font-size:10px; color:#aaa; margin-top:3px; font-family:monospace;">البصمة: ${user.hash}</div>
+                                <div style="margin-top:5px; color:#00ffcc; font-size:11px; font-weight:bold;">⚠️ رادار: تم كشف دخول مخفي</div>
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+
+            // [23] التنظيف الذاتي
+            for (const uid of alertedUsers) {
+                const isStillIn = document.querySelector(`.${uid}.inroom[data-nexus-spy="1"], .${uid}.inroom img.ustat[src*="s4.png"]`);
+                if (!isStillIn) alertedUsers.delete(uid);
+            }
+        },
+
+        // [39] رادار التزييف وتمركزه بجوار اللوحة في الجهة العليا
+        updateFakeCounter: function() {
+            if (!this.settings.fakeCounter) return;
+            const realCount = document.querySelectorAll('.uzr.inroom:not(.p-off)').length;
+            const webCount = parseInt(document.querySelector('.u-cnt, #u-cnt')?.textContent) || realCount;
+            const bots = webCount - realCount;
+
+            let counterDiv = document.getElementById('nexus-fake-counter');
+            if (!counterDiv) {
+                counterDiv = document.createElement('div');
+                counterDiv.id = 'nexus-fake-counter';
+                counterDiv.style = "position:fixed; top:10px; right:50%; transform:translateX(50%); background:rgba(0,0,0,0.8); padding:5px 15px; border:1px solid #00ffcc; border-radius:20px; color:#fff; font-size:12px; font-weight:bold; z-index:99999; display:flex; gap:10px; direction:rtl;";
+                document.body.appendChild(counterDiv);
+            }
+            counterDiv.innerHTML = `<span style="color:#00ffcc;">حقيقي: ${realCount}</span> | <span style="color:#ff3e3e;">وهمي/معلق: ${bots > 0 ? bots : 0}</span>`;
+        },
+
+        // [32] القائمة الذكية: كليك يمين للكمبيوتر + تعليق للهواتف
+        initSmartMenu: function(el, cleanId) {
+            if (el._nexusMenuBound) return;
+
+            const self = this;
+            const showMenu = (clientX, clientY) => {
+                const existing = document.getElementById('nexus-smart-menu');
+                if (existing) existing.remove();
+
+                const data = self.extractUserData(el);
+                const statusTxt = el.querySelector('.u-msg')?.textContent || "لا توجد حالة";
+
+                const menu = document.createElement('div');
+                menu.id = 'nexus-smart-menu';
+                
+                const x = Math.min(clientX, window.innerWidth - 150);
+                const y = Math.min(clientY, window.innerHeight - 220);
+
+                menu.style = `position:fixed; top:${y}px; left:${x}px; background:#1a1a1a; border:1px solid #00ffcc; border-radius:8px; padding:5px; z-index:100010; color:#fff; font-size:12px; min-width:140px; direction:rtl; font-family:sans-serif; box-shadow:0 4px 10px rgba(0,0,0,0.5);`;
+                
+                menu.innerHTML = `
+                    <div style="border-bottom:1px solid #333; padding:5px; text-align:center; font-weight:bold; color:#00ffcc; margin-bottom:5px;">إجراءات إدارية</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; hover:background:#333;" onclick="navigator.clipboard.writeText('${data.name}')">📋 نسخ الاسم</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onclick="window.open('${data.pic}')">🖼️ حفظ الصورة</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onclick="navigator.clipboard.writeText('${statusTxt}')">📝 نسخ الحالة</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ffc107;" onclick="if(typeof kickw==='function')kickw('${cleanId}')">🚪 طرد من الروم</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ff3e3e;" onclick="if(typeof banw==='function')banw('${cleanId}')">🚫 باند نهائي</div>
+                `;
+                document.body.appendChild(menu);
+                
+                setTimeout(() => { 
+                    document.addEventListener('click', function closeMenu() {
+                        const m = document.getElementById('nexus-smart-menu');
+                        if (m) m.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }); 
+                }, 100);
+            };
+
+            el.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showMenu(e.clientX, e.clientY);
+            });
+
+            let pressTimer;
+            el.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    e.preventDefault(); 
+                    const touch = e.touches[0];
+                    showMenu(touch.clientX, touch.clientY);
+                }, 600); 
+            }, { passive: false });
+
+            el.addEventListener('touchend', () => clearTimeout(pressTimer));
+            el.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+            el._nexusMenuBound = true;
+        },
+
+        // [1-16, 26, 35] المحرك المركزي للإصلاح، الأزرار، والوصول
+        runAdapter: function() {
+            const host = this.env.host;
+            if (host === "TigerHost_Engine") {
+                document.querySelectorAll('.btn, .tiger-btn, .u-admin-btn').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
+                document.querySelectorAll('[class^="itarr"], .tiger-frame').forEach(el => el.remove());
+                this.repairCore(".tiger-user, .uzr", "#ffc107");
+            } else if (host === "PhoneUCam_Engine") {
+                document.querySelectorAll('.btn, .u-admin-btn, .v-cam-btn, .minix').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
+                document.querySelectorAll('.u-frame, .v-overlay').forEach(el => el.remove());
+                this.repairCore(".v-user, .uzr", "#ff5722");
+                
+                if (this.settings.cameraSpy) {
+                    document.querySelectorAll('.v-cam-active, i.fa-video-camera').forEach(cam => {
+                        const userEl = cam.closest('.uzr, .v-user');
+                        if (userEl && !userEl._nexusCamAlert) {
+                            const name = userEl.getAttribute('n');
+                            this.toast(`🔔 رادار الكاميرا: <b style="color:#00ffcc">${name}</b> يقوم بالبث/المشاهدة الآن.`, 4000);
+                            userEl._nexusCamAlert = true;
+                        }
+                    });
+                }
+            } else { // JawalHost
+                document.querySelectorAll('.btn, .minix, [id^="ahmed"], [id^="sultan"]').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
+                document.querySelectorAll('[class^="itarr"], .nonot, .ubnr').forEach(el => el.remove());
+                this.repairCore(".uzr", "#4caf50");
+            }
+
+            if (this.settings.profileSniper) {
+                const myName = window.myN || "";
+                document.querySelectorAll('.log-msg').forEach(msg => {
+                    if (msg.textContent.includes('فتح ملف') && msg.textContent.includes(myName) && !msg._nexusSniper) {
+                        this.toast(`👁️ كاشف المراقبة: شخص ما يتصفح بروفايلك الآن!`, 5000);
+                        msg._nexusSniper = true;
+                    }
+                });
+            }
+        },
+
+        repairCore: function(targetSelector, themeColor) {
+            document.querySelectorAll(targetSelector).forEach(el => {
+                const cleanId = (el.getAttribute('id') || el.getAttribute('n') || "").replace(/\D/g, '');
+
+                // ======== الإصلاح الجذري لقائمة جوال هوست (الإظهار القسري الشامل) ========
+                const isGhostIcon = el.querySelector('img.ustat[src*="s4.png"]');
+                const st = window.getComputedStyle(el);
+                
+                // التقاط أي محاولة إخفاء برمجية مهما كان نوعها
+                const isHiddenStyle = st.display === 'none' || st.fontSize === '0px' || st.height === '0px' || st.opacity === '0' || st.visibility === 'hidden' || el.style.display === 'none';
+
+                if (isGhostIcon || isHiddenStyle) {
+                    // كسر كل حواجز الـ CSS لإجبار العنصر على الظهور في قائمة المتواجدين
+                    el.style.setProperty('display', 'block', 'important');
+                    el.style.setProperty('visibility', 'visible', 'important');
+                    el.style.setProperty('opacity', '1', 'important');
+                    el.style.setProperty('font-size', '13px', 'important'); // إجبار الحجم
+                    el.style.setProperty('height', 'auto', 'important');
+                    el.style.setProperty('width', '100%', 'important');
+                    el.style.setProperty('margin', '2px 0', 'important');
+                    el.style.setProperty('padding', '5px', 'important');
+                    el.style.setProperty('position', 'relative', 'important');
+                    el.style.setProperty('overflow', 'visible', 'important');
+                    
+                    // تمييز المخفي في القائمة بإطار أحمر ليظهر بوضوح
+                    if (!el.getAttribute('data-nexus-spy')) {
+                        el.style.setProperty('border-right', '4px solid #ff3e3e', 'important');
+                        el.style.setProperty('background-color', 'rgba(255, 62, 62, 0.08)', 'important');
+                    }
+                    el.setAttribute('data-nexus-spy', '1');
+                }
+
+                // [14] التأكد من عدم إخفاء نص الاسم نفسه (مشكلة متكررة في جوال هوست)
+                const topic = el.querySelector('.u-topic');
+                if (topic) {
+                    const topicSt = window.getComputedStyle(topic);
+                    if (topicSt.color === topicSt.backgroundColor || topicSt.display === 'none' || topicSt.fontSize === '0px') {
+                        topic.style.setProperty('color', themeColor, 'important');
+                        topic.style.setProperty('font-size', '13px', 'important');
+                        topic.style.setProperty('display', 'inline-block', 'important');
+                    }
+                }
+
+                // [16] القابلية للضغط للبروفايل والخاص
+                if ((el.getAttribute('data-nexus-spy') === '1' || el.querySelector('img.ustat[src*="s4.png"]')) && !el._nexusClickBound) {
+                    el.style.cursor = "pointer";
+                    el.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (typeof upro === "function") upro(cleanId);
+                        if (typeof openw === "function") setTimeout(() => openw(cleanId, true), 100);
+                    });
+                    el._nexusClickBound = true;
+                }
+
+                this.initSmartMenu(el, cleanId);
+
+                const adminCls = ['__rv_me', 'ahmed', 'sultan', 'tiger-admin', 'admin-hidden', 'custom-alaw'];
+                adminCls.forEach(c => { if (el.classList.contains(c)) el.classList.remove(c); });
+                
+                const n = el.getAttribute('n'), p = el.getAttribute('data-pic');
+                const pic = el.querySelector('.u-pic');
+                if (topic && n && topic.textContent.trim() === "") topic.textContent = n;
+                if (pic && p && !pic.style.backgroundImage) pic.style.backgroundImage = `url("${p}")`;
+            });
+            this.checkHiddenRadar();
+        },
+
+        startGlobalObserver: function() {
+            let timeout = null;
+            new MutationObserver(() => {
+                const searchBox = document.getElementById('usearch');
+                if (searchBox && searchBox.value.trim().length > 0) return;
+
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    this.runAdapter();
+                    this.updateFakeCounter();
+                }, 100); 
+
+            }).observe(document.body, { childList: true, subtree: true });
+        }
+    };
+
+    Nexus_Ghost.init();
+})();
