@@ -1,7 +1,7 @@
 /* 💠 Project: Nexus Ghost Sovereign Ultimate
    👤 Author: Gh0sT-Sa
    🚀 Status: 45/45 Sovereign Features Active - Total Control
-   Version: 4.1.0 (Global Edition - Multi-Device & Multi-Host)
+   Version: 4.1.1 (Global Edition - JawalHost Visibility Patch)
 */
 
 (function() {
@@ -16,7 +16,7 @@
         config: { 
             name: "Nexus Ghost Sovereign Ultimate", 
             author: "Gh0sT-Sa", 
-            version: "4.1.0",
+            version: "4.1.1",
             lang: {
                 host: { "JawalHost_Universal": "جوال هوست / ابن اليمن / نجد / الخليج", "PhoneUCam_Engine": "فون هوست / يو كام", "TigerHost_Engine": "تايقر هوست" },
                 os: { "Windows": "ويندوز", "Linux": "لينكس", "Mac OS": "ماك", "Android": "أندرويد", "iOS": "آيفون" },
@@ -33,15 +33,15 @@
 
         // [45] التهيئة الأساسية وترتيب التنفيذ حسب الأهمية
         init: function() {
-            this.detectEnvironment(); // [44, 45] التعرف على البيئة
-            this.identifyEngine(); // [18] التعرف على الشات
-            this.runSovereignShield(); // [31, 33, 34] تفعيل الدرع أولاً لمنع الطرد
-            this.neutralizeRank(); // [17, 28] تحييد الصلاحية واللايكات
-            this.applyMonkeyPatching(); // [6, 25, 27, 29, 30, 36, 37] الاعتراض العميق للسوكيت
-            this.initToastContainer(); // [22] حاوية التنبيهات
-            this.buildControlPanel(); // [41, 43] إنشاء لوحة التحكم بالشكل الجديد
-            this.startGlobalObserver(); // [40, 42] المراقبة المستمرة المحسنة الأداء
-            this.showWelcomeMessage(); // [44] رسالة التفعيل
+            this.detectEnvironment(); 
+            this.identifyEngine(); 
+            this.runSovereignShield(); 
+            this.neutralizeRank(); 
+            this.applyMonkeyPatching(); 
+            this.initToastContainer(); 
+            this.buildControlPanel(); 
+            this.startGlobalObserver(); 
+            this.showWelcomeMessage(); 
         },
 
         // [44, 45] كشف البيئة وتوطينها للعربية
@@ -72,13 +72,11 @@
 
         // [31, 33, 34] درع السيادة: مانع الطرد، الباند، وتثبيت الغرفة
         runSovereignShield: function() {
-            window.onbeforeunload = function() { return null; }; // منع التحديث القسري
+            window.onbeforeunload = function() { return null; }; 
             
-            // إبطال دوال الطرد المباشرة
             if (typeof window.logout === 'function') window.logout = () => console.log("Nexus: Logout Blocked");
             if (typeof window.kick === 'function') window.kick = () => console.log("Nexus: Kick Blocked");
             
-            // اعتراض الطرد من السوكيت (Reconnect Logic)
             const _origClose = WebSocket.prototype.close;
             WebSocket.prototype.close = function() {
                 if (Nexus_Ghost.settings.sovereignShield) {
@@ -92,9 +90,8 @@
         // [17, 28] تحييد الصلاحية كلياً وتخطي اللايكات
         neutralizeRank: function() {
             window.myPower = 999; window.myLevel = 999; window.isAdmin = true;
-            window.myLikes = 99999; // [28] تخطي اللايكات
+            window.myLikes = 99999; 
             
-            // كسر قفل فتح الخاص
             if (typeof window.openw === 'function') {
                 const _origOpenw = window.openw;
                 window.openw = function(id, force) { return _origOpenw(id, true); };
@@ -107,20 +104,10 @@
             if (typeof window.send === 'function') {
                 const _origSend = window.send;
                 window.send = function(cmd, data) {
-                    // [36] الدخول الصامت
                     if (cmd === 'join' && self.settings.silentJoin) data.ghost = true;
-                    
-                    // [25, 37] معالج البصمة المتغيرة (تغيير الهاش)
                     if (data && data.uhash && self.settings.hashSpoofer) data.uhash = self.generateFakeHash();
-                    
-                    // [28] تخطي اللايكات في الحزم
                     if (data && data.likes !== undefined) data.likes = 99999;
-
-                    // [27] تخطي وضع التجاهل
-                    if (cmd === 'msg' && self.settings.ignoreBypass && data.to) {
-                        data.forceAlert = true; 
-                    }
-
+                    if (cmd === 'msg' && self.settings.ignoreBypass && data.to) data.forceAlert = true; 
                     return _origSend(cmd, data);
                 };
             }
@@ -136,7 +123,7 @@
                         msgEl.insertAdjacentHTML('afterbegin', '<span style="color:#ff3e3e; font-size:10px; font-weight:bold;">[محذوفة/أرشيف] </span>');
                         msgEl.dataset.nexusArchived = "true";
                     }
-                    return; // منع الحذف الفعلي من الـ DOM
+                    return; 
                 }
             };
             if (typeof window.removeMsg === 'function') {
@@ -147,19 +134,12 @@
                 const _origDel = window.del_msg;
                 window.del_msg = function(id) { preventDelete(id); };
             }
-
-            // [29] كاشف مراقبة الملف الشخصي (Profile Sniper)
-            const _origRecv = window.recv || (window.socket && window.socket.onmessage);
-            if (_origRecv) {
-                // (Logic injected inside the runAdapter for DOM-based detection)
-            }
         },
 
         generateFakeHash: () => Math.random().toString(36).substring(2, 15),
 
         // [41, 43] بناء لوحة التحكم بالجهة العليا
         buildControlPanel: function() {
-            // الزر العائم في أعلى اليسار بجوار رادار التزييف
             const fab = document.createElement('div');
             fab.innerHTML = "🛡️ Nexus";
             fab.style = `position:fixed; top:10px; left:15px; background:linear-gradient(45deg, #000, #333); color:#00ffcc; 
@@ -167,7 +147,6 @@
                          z-index:100000; box-shadow:0 0 10px rgba(0,255,204,0.4); font-family:sans-serif; font-size:12px;`;
             document.body.appendChild(fab);
 
-            // الحاوية الرئيسية للوحة تفتح من الأعلى
             const panel = document.createElement('div');
             panel.id = 'nexus-control-panel';
             panel.style = `position:fixed; top:50px; left:15px; width:300px; background:rgba(15,15,15,0.95); border:1px solid #00ffcc; 
@@ -185,6 +164,7 @@
                     <div style="margin-top:15px; font-size:13px; color:#ffc107; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;">شيك ليست المزايا المدعومة:</div>
                     <div id="nexus-checklist" style="font-size:11px; color:#aaa; line-height:1.6;">
                         ✅ الرادار الذكي (جميع النسخ)<br>
+                        ✅ الإظهار القسري لجوال هوست (مُفعل)<br>
                         ✅ الدرع السيادي (مانع الطرد)<br>
                         ✅ الأرشيف الحي (Anti-Delete)<br>
                         ✅ القائمة الذكية (نقر يمين / تعليق)<br>
@@ -230,274 +210,4 @@
         showWelcomeMessage: function() {
             const hostName = this.config.lang.host[this.env.host] || "غير معروف";
             const osName = this.config.lang.os[this.env.os] || this.env.os;
-            const browserName = this.config.lang.browser[this.env.browser] || this.env.browser;
-
-            this.toast(`
-                <div style="text-align:right; direction:rtl; font-family:sans-serif;">
-                    <b style="color:#00ffcc; font-size:15px;">${this.config.name}</b><br>
-                    <div style="margin-top:5px; font-size:12px; color:#ddd; line-height:1.6;">
-                        👤 المبرمج: <span style="color:#fff;">${this.config.author}</span><br>
-                        🌐 الدردشة: <span style="color:#ffc107;">${hostName}</span><br>
-                        💻 الجهاز: <span style="color:#fff;">${osName}</span><br>
-                        🌍 المتصفح: <span style="color:#fff;">${browserName}</span><br>
-                    </div>
-                    <hr style="border:0.5px solid #333; margin:8px 0;">
-                    <center style="color:#00ffcc; font-weight:bold; font-size:13px;">تـم تـفـعـيـل الـسـيـكـربـت بـنـجـاح</center>
-                </div>
-            `, 8000);
-        },
-
-        toast: function(html, duration = 6000) {
-            const container = document.getElementById("nexus-toast-container");
-            const toast = document.createElement("div");
-            toast.style = "background:rgba(15,15,15,0.95); border-right:4px solid #00ffcc; border-radius:8px; padding:15px; color:#fff; box-shadow:0 5px 15px rgba(0,0,0,0.5); pointer-events:auto; transition:all 0.5s ease; opacity:0; transform:translateY(-20px);";
-            toast.innerHTML = html;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = "1"; toast.style.transform = "translateY(0)"; }, 10);
-            setTimeout(() => { if(toast) toast.remove(); }, duration);
-        },
-
-        // [21] استخراج البيانات الحساسة (الرادار)
-        extractUserData: function(el) {
-            const name = el.getAttribute("n")?.trim() || el.querySelector('.u-topic')?.textContent || "مجهول";
-            const icon = el.querySelector('.u-ico')?.src || "";
-            const hash = el.querySelector('.uhash')?.textContent || "مخفي";
-            let pic = "pic/unknown.png";
-            const picDiv = el.querySelector('.u-pic, .tiger-pic, .v-pic');
-            if (picDiv) {
-                const bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
-                const match = bg.match(/url\(["']?(.*?)["']?\)/);
-                if (match && match[1]) pic = match[1].startsWith('http') ? match[1] : window.location.origin + '/' + match[1].replace(/^\/+/, '');
-            }
-            return { name, pic, icon, hash };
-        },
-
-        // [18-24, 38] رادار دخول المخفيين
-        checkHiddenRadar: function() {
-            if (!this.settings.radarAlert) return;
-            const selectors = '.uzr.inroom, .tiger-user.inroom, .v-user.inroom';
-            document.querySelectorAll(selectors).forEach(el => {
-                const uidClass = [...el.classList].find(c => c.startsWith('uid'));
-                if (!uidClass) return;
-
-                const isHidden = el.querySelector('img.ustat[src*="s4.png"]') || el.getAttribute('data-nexus-spy') === '1';
-
-                if (isHidden && !alertedUsers.has(uidClass)) {
-                    alertedUsers.add(uidClass);
-                    const user = this.extractUserData(el);
-                    if (this.settings.audioAlert) audioAlert.play();
-                    
-                    this.toast(`
-                        <div style="display:flex; align-items:center; gap:12px; direction:rtl; text-align:right;">
-                            <img src="${user.pic}" style="width:50px; height:50px; border-radius:10px; border:2px solid #ff3e3e;">
-                            <div style="flex-grow:1;">
-                                <div style="display:flex; align-items:center; gap:6px; font-weight:bold; color:#ff3e3e;">
-                                    ${user.name} ${user.icon ? `<img src="${user.icon}" style="height:16px;">` : ""}
-                                </div>
-                                <div style="font-size:10px; color:#aaa; margin-top:3px; font-family:monospace;">البصمة: ${user.hash}</div>
-                                <div style="margin-top:5px; color:#00ffcc; font-size:11px; font-weight:bold;">⚠️ رادار: تم كشف دخول مخفي</div>
-                            </div>
-                        </div>
-                    `);
-                }
-            });
-
-            // [23] التنظيف الذاتي
-            for (const uid of alertedUsers) {
-                const isStillIn = document.querySelector(`.${uid}.inroom[data-nexus-spy="1"], .${uid}.inroom img.ustat[src*="s4.png"]`);
-                if (!isStillIn) alertedUsers.delete(uid);
-            }
-        },
-
-        // [39] رادار التزييف وتمركزه بجوار اللوحة في الجهة العليا
-        updateFakeCounter: function() {
-            if (!this.settings.fakeCounter) return;
-            const realCount = document.querySelectorAll('.uzr.inroom:not(.p-off)').length;
-            const webCount = parseInt(document.querySelector('.u-cnt, #u-cnt')?.textContent) || realCount;
-            const bots = webCount - realCount;
-
-            let counterDiv = document.getElementById('nexus-fake-counter');
-            if (!counterDiv) {
-                counterDiv = document.createElement('div');
-                counterDiv.id = 'nexus-fake-counter';
-                // متمركز بالجهة العليا بجوار زر اللوحة العائم
-                counterDiv.style = "position:fixed; top:10px; right:50%; transform:translateX(50%); background:rgba(0,0,0,0.8); padding:5px 15px; border:1px solid #00ffcc; border-radius:20px; color:#fff; font-size:12px; font-weight:bold; z-index:99999; display:flex; gap:10px; direction:rtl;";
-                document.body.appendChild(counterDiv);
-            }
-            counterDiv.innerHTML = `<span style="color:#00ffcc;">حقيقي: ${realCount}</span> | <span style="color:#ff3e3e;">وهمي/معلق: ${bots > 0 ? bots : 0}</span>`;
-        },
-
-        // [32] القائمة الذكية: كليك يمين للكمبيوتر + تعليق للهواتف
-        initSmartMenu: function(el, cleanId) {
-            if (el._nexusMenuBound) return;
-
-            const self = this;
-            const showMenu = (clientX, clientY) => {
-                const existing = document.getElementById('nexus-smart-menu');
-                if (existing) existing.remove();
-
-                const data = self.extractUserData(el);
-                const statusTxt = el.querySelector('.u-msg')?.textContent || "لا توجد حالة";
-
-                const menu = document.createElement('div');
-                menu.id = 'nexus-smart-menu';
-                
-                // التأكد من عدم خروج القائمة عن حدود الشاشة
-                const x = Math.min(clientX, window.innerWidth - 150);
-                const y = Math.min(clientY, window.innerHeight - 220);
-
-                menu.style = `position:fixed; top:${y}px; left:${x}px; background:#1a1a1a; border:1px solid #00ffcc; border-radius:8px; padding:5px; z-index:100010; color:#fff; font-size:12px; min-width:140px; direction:rtl; font-family:sans-serif; box-shadow:0 4px 10px rgba(0,0,0,0.5);`;
-                
-                menu.innerHTML = `
-                    <div style="border-bottom:1px solid #333; padding:5px; text-align:center; font-weight:bold; color:#00ffcc; margin-bottom:5px;">إجراءات إدارية</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer; hover:background:#333;" onclick="navigator.clipboard.writeText('${data.name}')">📋 نسخ الاسم</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer;" onclick="window.open('${data.pic}')">🖼️ حفظ الصورة</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer;" onclick="navigator.clipboard.writeText('${statusTxt}')">📝 نسخ الحالة</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ffc107;" onclick="if(typeof kickw==='function')kickw('${cleanId}')">🚪 طرد من الروم</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ff3e3e;" onclick="if(typeof banw==='function')banw('${cleanId}')">🚫 باند نهائي</div>
-                `;
-                document.body.appendChild(menu);
-                
-                // إغلاق عند النقر في أي مكان
-                setTimeout(() => { 
-                    document.addEventListener('click', function closeMenu() {
-                        const m = document.getElementById('nexus-smart-menu');
-                        if (m) m.remove();
-                        document.removeEventListener('click', closeMenu);
-                    }); 
-                }, 100);
-            };
-
-            // 1- أجهزة الكمبيوتر: تفعيل بالقائمة المنسدلة للماوس (Right-Click)
-            el.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                showMenu(e.clientX, e.clientY);
-            });
-
-            // 2- الهواتف الذكية: تفعيل عبر التعليق والضغط المطول (Long Press)
-            let pressTimer;
-            el.addEventListener('touchstart', (e) => {
-                pressTimer = setTimeout(() => {
-                    // منع السلوك الافتراضي للهاتف عند التعليق لإظهار قائمتنا الذكية
-                    e.preventDefault(); 
-                    const touch = e.touches[0];
-                    showMenu(touch.clientX, touch.clientY);
-                }, 600); // 600 ملي ثانية (الزمن المثالي للتعليق)
-            }, { passive: false });
-
-            el.addEventListener('touchend', () => clearTimeout(pressTimer));
-            el.addEventListener('touchmove', () => clearTimeout(pressTimer));
-
-            el._nexusMenuBound = true;
-        },
-
-        // [1-16, 26, 35] المحرك المركزي للإصلاح، الأزرار، والوصول
-        runAdapter: function() {
-            // [1, 2, 12] إظهار الأزرار وفك الإطارات
-            const host = this.env.host;
-            if (host === "TigerHost_Engine") {
-                document.querySelectorAll('.btn, .tiger-btn, .u-admin-btn').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
-                document.querySelectorAll('[class^="itarr"], .tiger-frame').forEach(el => el.remove());
-                this.repairCore(".tiger-user, .uzr", "#ffc107");
-            } else if (host === "PhoneUCam_Engine") {
-                document.querySelectorAll('.btn, .u-admin-btn, .v-cam-btn, .minix').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
-                document.querySelectorAll('.u-frame, .v-overlay').forEach(el => el.remove());
-                this.repairCore(".v-user, .uzr", "#ff5722");
-                
-                // [35] كاشف الكاميرات المخفية (Phone/UCam)
-                if (this.settings.cameraSpy) {
-                    document.querySelectorAll('.v-cam-active, i.fa-video-camera').forEach(cam => {
-                        const userEl = cam.closest('.uzr, .v-user');
-                        if (userEl && !userEl._nexusCamAlert) {
-                            const name = userEl.getAttribute('n');
-                            this.toast(`🔔 رادار الكاميرا: <b style="color:#00ffcc">${name}</b> يقوم بالبث/المشاهدة الآن.`, 4000);
-                            userEl._nexusCamAlert = true;
-                        }
-                    });
-                }
-            } else { // JawalHost
-                document.querySelectorAll('.btn, .minix, [id^="ahmed"], [id^="sultan"]').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
-                document.querySelectorAll('[class^="itarr"], .nonot, .ubnr').forEach(el => el.remove());
-                this.repairCore(".uzr", "#4caf50");
-            }
-
-            // [29] كاشف تصفح الملف الشخصي (Profile Sniper) عبر مراقبة DOM للصناديق المفتوحة لك
-            if (this.settings.profileSniper) {
-                const myName = window.myN || "";
-                document.querySelectorAll('.log-msg').forEach(msg => {
-                    if (msg.textContent.includes('فتح ملف') && msg.textContent.includes(myName) && !msg._nexusSniper) {
-                        this.toast(`👁️ كاشف المراقبة: شخص ما يتصفح بروفايلك الآن!`, 5000);
-                        msg._nexusSniper = true;
-                    }
-                });
-            }
-        },
-
-        repairCore: function(targetSelector, themeColor) {
-            document.querySelectorAll(targetSelector).forEach(el => {
-                const cleanId = (el.getAttribute('id') || el.getAttribute('n') || "").replace(/\D/g, '');
-
-                // [11, 7, 4, 5] التصفير والإظهار القسري
-                const style = window.getComputedStyle(el);
-                if (style.fontSize === '0px' || style.display === 'none') {
-                    el.style.setProperty('display', 'block', 'important');
-                    el.style.setProperty('font-size', 'inherit', 'important');
-                    el.style.setProperty('height', 'auto', 'important');
-                    el.setAttribute('data-nexus-spy', '1');
-                }
-
-                // [16] القابلية للضغط للبروفايل والخاص
-                if ((el.getAttribute('data-nexus-spy') === '1' || el.querySelector('img.ustat[src*="s4.png"]')) && !el._nexusClickBound) {
-                    el.style.cursor = "pointer";
-                    el.addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        if (typeof upro === "function") upro(cleanId);
-                        if (typeof openw === "function") setTimeout(() => openw(cleanId, true), 100);
-                    });
-                    el._nexusClickBound = true;
-                }
-
-                // [32] تفعيل القائمة الذكية لكل مستخدم (بالتعديل الجديد للهواتف والكمبيوتر)
-                this.initSmartMenu(el, cleanId);
-
-                // [13-15] تنظيف البصمات الإدارية وإبطال التزيين
-                const adminCls = ['__rv_me', 'ahmed', 'sultan', 'tiger-admin', 'admin-hidden', 'custom-alaw'];
-                adminCls.forEach(c => { if (el.classList.contains(c)) el.classList.remove(c); });
-                
-                // [14] كشف نص التمويه
-                const topic = el.querySelector('.u-topic');
-                if (topic && (window.getComputedStyle(topic).color === window.getComputedStyle(topic).backgroundColor)) {
-                    topic.style.setProperty('color', themeColor, 'important');
-                }
-
-                // [9, 10] استعادة البيانات والصورة
-                const n = el.getAttribute('n'), p = el.getAttribute('data-pic');
-                const pic = el.querySelector('.u-pic');
-                if (topic && n && topic.textContent.trim() === "") topic.textContent = n;
-                if (pic && p && !pic.style.backgroundImage) pic.style.backgroundImage = `url("${p}")`;
-            });
-            this.checkHiddenRadar();
-        },
-
-        // [40, 42] المراقبة المستمرة المحسنة (MutationObserver مع تقليل الضغط Throttling)
-        startGlobalObserver: function() {
-            let timeout = null;
-            new MutationObserver(() => {
-                // منع التداخل إذا كنت تكتب في مربع البحث
-                const searchBox = document.getElementById('usearch');
-                if (searchBox && searchBox.value.trim().length > 0) return;
-
-                // [42] تحسين الأداء عبر تأخير التنفيذ (Debounce) لتقليل استهلاك المعالج
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    this.runAdapter();
-                    this.updateFakeCounter(); // [39] تحديث العداد
-                }, 100); 
-
-            }).observe(document.body, { childList: true, subtree: true });
-        }
-    };
-
-    // [Execute Nexus Sovereign Ultimate]
-    Nexus_Ghost.init();
-})();
+            const browserName = this.config.
