@@ -1,7 +1,7 @@
 /* 💠 Project: Nexus Ghost Sovereign Ultimate
    👤 Author: Gh0sT-Sa
    🚀 Status: 45/45 Sovereign Features Active - Total Control
-   Version: 4.2.0 (Royal Edition - Flawless Engine Detection & Action Fix)
+   Version: 4.3.0 (Overlord Edition - JawalHost Core Override)
 */
 
 (function() {
@@ -16,9 +16,9 @@
         config: { 
             name: "Nexus Ghost Sovereign Ultimate", 
             author: "Gh0sT-Sa", 
-            version: "4.2.0",
+            version: "4.3.0",
             lang: {
-                host: { "JawalHost_Universal": "جوال هوست / ابن اليمن / نجد / الخليج", "PhoneUCam_Engine": "فون هوست / يو كام", "TigerHost_Engine": "تايقر هوست" },
+                host: { "JawalHost_Universal": "جوال هوست (كلاسيك)", "PhoneUCam_Engine": "فون هوست / يو كام", "TigerHost_Engine": "تايقر هوست" },
                 os: { "Windows": "ويندوز", "Linux": "لينكس", "Mac OS": "ماك", "Android": "أندرويد", "iOS": "آيفون" },
                 browser: { "Chrome": "كروم", "Firefox": "فايرفوكس", "Safari": "سافاري", "Edge": "إيدج", "Opera": "أوبرا" }
             }
@@ -29,7 +29,7 @@
             silentJoin: true, hashSpoofer: true, profileSniper: true,
             cameraSpy: true, multiRoomSpy: true
         },
-        env: { host: "Unknown", engine: "None", device: "", browser: "", os: "" },
+        env: { host: "Unknown", engine: "None", device: "", browser: "", os: "", siteName: "" },
 
         // [45] التهيئة الأساسية وترتيب التنفيذ حسب الأهمية
         init: function() {
@@ -60,16 +60,17 @@
             else if (/firefox/i.test(ua)) this.env.browser = "Firefox";
             else if (/safari/i.test(ua)) this.env.browser = "Safari";
             else this.env.browser = "Unknown";
+            
+            // [1] سحب اسم الموقع الفعلي من الدومين أو العنوان
+            this.env.siteName = document.title || window.location.hostname.replace('www.', '');
         },
 
-        // 🛠️ التحديث الجذري للتعرف على محرك الشات لمنع التداخل
         identifyEngine: function() {
             if (typeof window.TigerConfig !== 'undefined' || document.querySelector('.tiger-frame') || document.querySelector('.tiger-user')) {
                 this.env.host = "TigerHost_Engine";
             } else if (document.querySelector('.v-user') || document.querySelector('.v-cam-btn') || window.location.hostname.includes('phone') || window.location.hostname.includes('ucam')) {
                 this.env.host = "PhoneUCam_Engine";
             } else {
-                // إذا لم يكن تايقر ولا فون، فهو بالضرورة الجيل الكلاسيكي (جوال هوست)
                 this.env.host = "JawalHost_Universal";
             }
         },
@@ -111,9 +112,7 @@
                     if (cmd === 'join' && self.settings.silentJoin) data.ghost = true;
                     if (data && data.uhash && self.settings.hashSpoofer) data.uhash = self.generateFakeHash();
                     if (data && data.likes !== undefined) data.likes = 99999;
-                    if (cmd === 'msg' && self.settings.ignoreBypass && data.to) {
-                        data.forceAlert = true; 
-                    }
+                    if (cmd === 'msg' && self.settings.ignoreBypass && data.to) data.forceAlert = true; 
                     return _origSend(cmd, data);
                 };
             }
@@ -172,8 +171,8 @@
                         ✅ الرادار الذكي (جميع النسخ)<br>
                         ✅ الدرع السيادي (مانع الطرد)<br>
                         ✅ الأرشيف الحي (Anti-Delete)<br>
-                        ✅ القائمة الذكية المحسنة (متوافق مع HTTP)<br>
-                        ✅ كاشف البوتات والوهميين<br>
+                        ✅ القائمة الذكية المتقدمة (إصلاح النسخ/الطرد)<br>
+                        ✅ كاشف البوتات والوهميين (شامل DOM)<br>
                         ✅ الدخول الصامت وتغيير البصمة<br>
                         ${this.env.host === 'PhoneUCam_Engine' ? '✅ رادار الكاميرات الخفية (مدعوم)' : '❌ رادار الكاميرات (خاص بيو كام/فون)'}
                     </div>
@@ -215,12 +214,13 @@
             const osName = this.config.lang.os[this.env.os] || this.env.os;
             const browserName = this.config.lang.browser[this.env.browser] || this.env.browser;
 
+            // تم التعديل لعرض اسم الموقع الديناميكي (الدومين) مع نوع المحرك
             this.toast(`
                 <div style="text-align:right; direction:rtl; font-family:sans-serif;">
-                    <b style="color:#00ffcc; font-size:15px;">${this.config.name} v4.2.0</b><br>
+                    <b style="color:#00ffcc; font-size:15px;">${this.config.name} v4.3.0</b><br>
                     <div style="margin-top:5px; font-size:12px; color:#ddd; line-height:1.6;">
                         👤 المبرمج: <span style="color:#fff;">${this.config.author}</span><br>
-                        🌐 الدردشة: <span style="color:#ffc107;">${hostName}</span><br>
+                        🌐 الموقع: <span style="color:#ffc107;">${this.env.siteName} (${hostName})</span><br>
                         💻 الجهاز: <span style="color:#fff;">${osName}</span><br>
                         🌍 المتصفح: <span style="color:#fff;">${browserName}</span><br>
                     </div>
@@ -240,43 +240,46 @@
             setTimeout(() => { if(toast) toast.remove(); }, duration);
         },
 
-        // 🛠️ دالة نسخ ذكية تعمل حتى في المواقع غير المشفرة (HTTP)
+        // 🛠️ المحرك الجديد للنسخ المباشر
         copyToClipboard: function(text) {
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text).then(() => this.toast("✅ تم النسخ بنجاح", 2000));
-            } else {
-                let textArea = document.createElement("textarea");
-                textArea.value = text;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    this.toast("✅ تم النسخ بنجاح", 2000);
-                } catch (error) {
-                    this.toast("❌ فشل النسخ (عذر من المتصفح)", 2000);
-                }
-                textArea.remove();
+            if (!text || text === "لا توجد حالة") {
+                this.toast("❌ لا يوجد نص لنسخه", 2000);
+                return;
             }
+            let textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                this.toast(`✅ تم النسخ: <span style="color:#00ffcc">${text.substring(0,15)}...</span>`, 2000);
+            } catch (err) {
+                prompt("عذراً متصفحك يمنع النسخ التلقائي، انسخ من هنا:", text);
+            }
+            document.body.removeChild(textArea);
         },
 
-        // 🛠️ دالة موحدة لتنفيذ مهام الطرد والباند لتناسب كل الشاتات
-        adminAction: function(actionType, cleanId) {
+        // 🛠️ المحرك الموحد لتنفيذ الأوامر الإدارية لكافة الشاتات (جوال، فون، تايقر)
+        adminAction: function(actionType, rawId, cleanId) {
+            // المحاولة بالـ rawId أولاً (غالباً يحتوي u في جوال هوست) ثم cleanId
+            const targets = [rawId, cleanId];
+            let success = false;
+            
             try {
                 if (actionType === 'kick') {
-                    if (typeof window.kickw === 'function') window.kickw(cleanId);
-                    else if (typeof window.kick === 'function') window.kick(cleanId);
-                    else if (typeof window.rkick === 'function') window.rkick(cleanId);
-                    else this.toast("❌ عذراً، دالة الطرد غير مدعومة بهذا الشات", 3000);
+                    if (typeof kickw === 'function') { kickw(targets[0]); success = true; }
+                    else if (typeof kick === 'function') { kick(targets[0]); success = true; }
+                    else if (typeof rkick === 'function') { rkick(targets[0]); success = true; }
                 } else if (actionType === 'ban') {
-                    if (typeof window.banw === 'function') window.banw(cleanId);
-                    else if (typeof window.ban === 'function') window.ban(cleanId);
-                    else if (typeof window.rban === 'function') window.rban(cleanId);
-                    else this.toast("❌ عذراً، دالة الباند غير مدعومة بهذا الشات", 3000);
+                    if (typeof banw === 'function') { banw(targets[0]); success = true; }
+                    else if (typeof ban === 'function') { ban(targets[0]); success = true; }
+                    else if (typeof rban === 'function') { rban(targets[0]); success = true; }
                 }
+                
+                if(success) this.toast(`✅ تم إرسال أمر الـ ${actionType} بنجاح`, 2000);
+                else this.toast(`❌ الدالة غير متوفرة أو حسابك لا يملك الصلاحية الفعلية`, 3000);
             } catch(e) {
-                this.toast("❌ حدث خطأ أثناء تنفيذ الأمر", 3000);
+                this.toast("❌ حدث خطأ أثناء تنفيذ الأمر المباشر", 3000);
             }
         },
 
@@ -285,7 +288,7 @@
             const icon = el.querySelector('.u-ico')?.src || "";
             const hash = el.querySelector('.uhash')?.textContent || "مخفي";
             
-            // 🛠️ حل مشكلة الصورة المصغرة: سحب الحجم الأصلي من data-pic إن وجد
+            // 🛠️ حل مشكلة 64x64: سحب الصورة الأصلية بإزالة لواحق التصغير
             let pic = el.getAttribute('data-pic'); 
             if (!pic) {
                 const picDiv = el.querySelector('.u-pic, .tiger-pic, .v-pic');
@@ -295,8 +298,13 @@
                     if (match && match[1]) pic = match[1];
                 }
             }
-            if(!pic) pic = "pic/unknown.png";
-            if (!pic.startsWith('http')) pic = window.location.origin + '/' + pic.replace(/^\/+/, '');
+            if(!pic) {
+                pic = "pic/unknown.png";
+            } else {
+                // إزالة الإضافات التي تضعها السيرفرات لتصغير الصورة
+                pic = pic.replace(/_mini/g, '').replace(/_th/g, '').replace(/_64x64/g, '').replace(/_50x50/g, '');
+                if (!pic.startsWith('http')) pic = window.location.origin + '/' + pic.replace(/^\/+/, '');
+            }
             
             return { name, pic, icon, hash };
         },
@@ -336,10 +344,13 @@
             }
         },
 
+        // 🛠️ حل جذري لعداد التزييف (حساب كل متواجد في الـ DOM وليس الروم فقط)
         updateFakeCounter: function() {
             if (!this.settings.fakeCounter) return;
-            const realCount = document.querySelectorAll('.uzr.inroom:not(.p-off)').length;
-            const webCount = parseInt(document.querySelector('.u-cnt, #u-cnt')?.textContent) || realCount;
+            // حساب كل الأعضاء في المتصفح غير المطفئين
+            const realCount = document.querySelectorAll('.uzr:not(.p-off), .tiger-user:not(.p-off), .v-user:not(.p-off)').length;
+            const webCountElement = document.querySelector('.u-cnt, #u-cnt, .tiger-cnt');
+            const webCount = webCountElement ? parseInt(webCountElement.textContent) : realCount;
             const bots = webCount - realCount;
 
             let counterDiv = document.getElementById('nexus-fake-counter');
@@ -349,10 +360,10 @@
                 counterDiv.style = "position:fixed; top:10px; right:50%; transform:translateX(50%); background:rgba(0,0,0,0.8); padding:5px 15px; border:1px solid #00ffcc; border-radius:20px; color:#fff; font-size:12px; font-weight:bold; z-index:99999; display:flex; gap:10px; direction:rtl;";
                 document.body.appendChild(counterDiv);
             }
-            counterDiv.innerHTML = `<span style="color:#00ffcc;">حقيقي: ${realCount}</span> | <span style="color:#ff3e3e;">وهمي/معلق: ${bots > 0 ? bots : 0}</span>`;
+            counterDiv.innerHTML = `<span style="color:#00ffcc;">حقيقي إجمالي: ${realCount}</span> | <span style="color:#ff3e3e;">وهمي/معلق: ${bots > 0 ? bots : 0}</span>`;
         },
 
-        initSmartMenu: function(el, cleanId) {
+        initSmartMenu: function(el, cleanId, rawId) {
             if (el._nexusMenuBound) return;
 
             const self = this;
@@ -371,14 +382,14 @@
 
                 menu.style = `position:fixed; top:${y}px; left:${x}px; background:#1a1a1a; border:1px solid #00ffcc; border-radius:8px; padding:5px; z-index:100010; color:#fff; font-size:12px; min-width:140px; direction:rtl; font-family:sans-serif; box-shadow:0 4px 10px rgba(0,0,0,0.5);`;
                 
-                // 🛠️ ربط دوال النسخ والطرد الجديدة بالقائمة الذكية
+                // 🛠️ تم إرفاق الدوال بشكل مباشر داخل الـ HTML لتفادي المنع
                 menu.innerHTML = `
                     <div style="border-bottom:1px solid #333; padding:5px; text-align:center; font-weight:bold; color:#00ffcc; margin-bottom:5px;">إجراءات إدارية</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="Nexus_Ghost.copyToClipboard('${data.name}')">📋 نسخ الاسم</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="window.Nexus_Ghost_Ref.copyToClipboard('${data.name}')">📋 نسخ الاسم</div>
                     <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="window.open('${data.pic}', '_blank')">🖼️ حفظ الصورة (أصلية)</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="Nexus_Ghost.copyToClipboard('${statusTxt}')">📝 نسخ الحالة</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ffc107;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="Nexus_Ghost.adminAction('kick', '${cleanId}')">🚪 طرد من الروم</div>
-                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ff3e3e;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="Nexus_Ghost.adminAction('ban', '${cleanId}')">🚫 باند نهائي</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="window.Nexus_Ghost_Ref.copyToClipboard('${statusTxt}')">📝 نسخ الحالة</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ffc107;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="window.Nexus_Ghost_Ref.adminAction('kick', '${rawId}', '${cleanId}')">🚪 طرد من الروم</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ff3e3e;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="window.Nexus_Ghost_Ref.adminAction('ban', '${rawId}', '${cleanId}')">🚫 باند نهائي</div>
                 `;
                 document.body.appendChild(menu);
                 
@@ -432,7 +443,7 @@
                         }
                     });
                 }
-            } else { // JawalHost
+            } else { // JawalHost Universal
                 document.querySelectorAll('.btn, .minix, [id^="ahmed"], [id^="sultan"]').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
                 document.querySelectorAll('[class^="itarr"], .nonot, .ubnr').forEach(el => el.remove());
                 this.repairCore(".uzr", "#4caf50");
@@ -451,27 +462,24 @@
 
         repairCore: function(targetSelector, themeColor) {
             document.querySelectorAll(targetSelector).forEach(el => {
-                const cleanId = (el.getAttribute('id') || el.getAttribute('n') || "").replace(/\D/g, '');
+                const rawId = el.getAttribute('id') || el.getAttribute('n') || "";
+                const cleanId = rawId.replace(/\D/g, '');
 
                 const isGhost = el.querySelector('img.ustat[src*="s4.png"]');
                 const style = window.getComputedStyle(el);
                 
-                if (style.fontSize === '0px' || style.display === 'none' || isGhost) {
-                    el.style.setProperty('display', 'block', 'important');
-                    el.style.setProperty('visibility', 'visible', 'important');
-                    el.style.setProperty('opacity', '1', 'important');
-                    el.style.setProperty('height', 'auto', 'important');
+                // 🛠️ الإظهار النووي لقهر إخفاء جوال هوست المعقد (إجبار CSS)
+                if (style.fontSize === '0px' || style.display === 'none' || style.visibility === 'hidden' || isGhost) {
+                    el.style.cssText += 'display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; width: 100% !important; position: relative !important; z-index: 99 !important;';
                     
                     const topic = el.querySelector('.u-topic');
                     if (topic) {
-                        topic.style.setProperty('display', 'inline-block', 'important');
-                        topic.style.setProperty('font-size', '14px', 'important');
-                        topic.style.setProperty('visibility', 'visible', 'important');
+                        topic.style.cssText += 'display: inline-block !important; font-size: 14px !important; visibility: visible !important;';
                     }
                     
                     if (!el.getAttribute('data-nexus-spy')) {
                         el.style.setProperty('border-right', '3px solid #ff3e3e', 'important');
-                        el.style.setProperty('background-color', 'rgba(255, 62, 62, 0.08)', 'important');
+                        el.style.setProperty('background-color', 'rgba(255, 62, 62, 0.1)', 'important');
                     }
                     el.setAttribute('data-nexus-spy', '1');
                 }
@@ -486,9 +494,10 @@
                     el._nexusClickBound = true;
                 }
 
-                this.initSmartMenu(el, cleanId);
+                // تمرير المعرفات للقائمة الذكية
+                this.initSmartMenu(el, cleanId, rawId);
 
-                const adminCls = ['__rv_me', 'ahmed', 'sultan', 'tiger-admin', 'admin-hidden', 'custom-alaw'];
+                const adminCls = ['__rv_me', 'ahmed', 'sultan', 'tiger-admin', 'admin-hidden', 'custom-alaw', 'noshow'];
                 adminCls.forEach(c => { if (el.classList.contains(c)) el.classList.remove(c); });
                 
                 const n = el.getAttribute('n'), p = el.getAttribute('data-pic');
@@ -510,11 +519,13 @@
                 timeout = setTimeout(() => {
                     this.runAdapter();
                     this.updateFakeCounter();
-                }, 100); 
+                }, 150); // تم تخفيف الضغط ليكون 150 ملي ثانية لتخفيف العبء على المتصفح
 
             }).observe(document.body, { childList: true, subtree: true });
         }
     };
 
+    // 🛠️ تصدير كائن السكربت للمتغير العام لكي تستطيع أزرار القائمة الذكية الوصول إليه
+    window.Nexus_Ghost_Ref = Nexus_Ghost;
     Nexus_Ghost.init();
 })();
