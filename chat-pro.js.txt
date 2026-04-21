@@ -1,176 +1,503 @@
-/* 💠 Project: Nexus Ghost Interface
+/* 💠 Project: Nexus Ghost Sovereign Ultimate
    👤 Author: Gh0sT-Sa
-   🚀 Status: Quad-Engine (JawalHost, PhoneHost, U-Cam, TigerHost) Integrated
-   Version: 1.8.0
+   🚀 Status: 45/45 Sovereign Features Active - Total Control
+   Version: 4.1.0 (Global Edition - Multi-Device & Multi-Host)
 */
 
 (function() {
     'use strict';
 
+    // [20] منع التكرار للرادار
+    const alertedUsers = new Set();
+    const messageArchive = new Map(); // [30] الأرشيف الحي
+    const audioAlert = new Audio('https://www.soundjay.com/buttons/beep-01a.mp3'); // [38] تنبيه صوتي
+
     const Nexus_Ghost = {
-        config: {
-            name: "Nexus Ghost Interface",
-            author: "Gh0sT-Sa",
-            version: "1.8.0"
+        config: { 
+            name: "Nexus Ghost Sovereign Ultimate", 
+            author: "Gh0sT-Sa", 
+            version: "4.1.0",
+            lang: {
+                host: { "JawalHost_Universal": "جوال هوست / ابن اليمن / نجد / الخليج", "PhoneUCam_Engine": "فون هوست / يو كام", "TigerHost_Engine": "تايقر هوست" },
+                os: { "Windows": "ويندوز", "Linux": "لينكس", "Mac OS": "ماك", "Android": "أندرويد", "iOS": "آيفون" },
+                browser: { "Chrome": "كروم", "Firefox": "فايرفوكس", "Safari": "سافاري", "Edge": "إيدج", "Opera": "أوبرا" }
+            }
         },
-        env: { device: "Detecting...", host: "Unknown", engine: "None" },
-        checkList: { domReady: false, engineFound: false, adapterLoaded: false },
+        settings: {
+            radarAlert: true, audioAlert: true, antiDelete: true, 
+            ignoreBypass: true, sovereignShield: true, fakeCounter: true,
+            silentJoin: true, hashSpoofer: true, profileSniper: true,
+            cameraSpy: true, multiRoomSpy: true
+        },
+        env: { host: "Unknown", engine: "None", device: "", browser: "", os: "" },
 
+        // [45] التهيئة الأساسية وترتيب التنفيذ حسب الأهمية
         init: function() {
-            this.detectEnv();
-            this.identifyEngine();
-            this.renderConsoleArt();
-            this.runAdapter();
-            this.startGlobalObserver();
+            this.detectEnvironment(); // [44, 45] التعرف على البيئة
+            this.identifyEngine(); // [18] التعرف على الشات
+            this.runSovereignShield(); // [31, 33, 34] تفعيل الدرع أولاً لمنع الطرد
+            this.neutralizeRank(); // [17, 28] تحييد الصلاحية واللايكات
+            this.applyMonkeyPatching(); // [6, 25, 27, 29, 30, 36, 37] الاعتراض العميق للسوكيت
+            this.initToastContainer(); // [22] حاوية التنبيهات
+            this.buildControlPanel(); // [41, 43] إنشاء لوحة التحكم بالشكل الجديد
+            this.startGlobalObserver(); // [40, 42] المراقبة المستمرة المحسنة الأداء
+            this.showWelcomeMessage(); // [44] رسالة التفعيل
         },
 
-        detectEnv: function() {
+        // [44, 45] كشف البيئة وتوطينها للعربية
+        detectEnvironment: function() {
             const ua = navigator.userAgent;
-            if (/android/i.test(ua)) this.env.device = "Android";
-            else if (/iPhone|iPad|iPod/i.test(ua)) this.env.device = "iOS";
-            else if (/Windows/i.test(ua)) this.env.device = "Windows";
-            else this.env.device = "Linux/Other";
-            this.checkList.domReady = true;
+            if (/windows/i.test(ua)) this.env.os = "Windows";
+            else if (/android/i.test(ua)) this.env.os = "Android";
+            else if (/iPad|iPhone|iPod/.test(ua)) this.env.os = "iOS";
+            else if (/mac/i.test(ua)) this.env.os = "Mac OS";
+            else if (/linux/i.test(ua)) this.env.os = "Linux";
+            else this.env.os = "Unknown";
+
+            if (/edg/i.test(ua)) this.env.browser = "Edge";
+            else if (/opr|opera/i.test(ua)) this.env.browser = "Opera";
+            else if (/chrome/i.test(ua)) this.env.browser = "Chrome";
+            else if (/firefox/i.test(ua)) this.env.browser = "Firefox";
+            else if (/safari/i.test(ua)) this.env.browser = "Safari";
+            else this.env.browser = "Unknown";
         },
 
         identifyEngine: function() {
-            const h = window.location.hostname.toLowerCase();
-            const pageContent = document.documentElement.innerHTML;
-
-            // 1. بصمة تايجر هوست (Tiger Host) - اكتشاف عبر المجلدات والمعرفات الفريدة
-            if (window.TigerHost || document.querySelector('script[src*="tiger"]') || pageContent.includes('Tiger_Host')) {
-                this.env.host = "TigerHost";
-                this.env.engine = "Tiger Host Engine";
-                this.checkList.engineFound = true;
-            }
-            // 2. بصمة يو كام هوست (U-Cam Host)
-            else if (window.MSDevice || window.SimplePeer || document.querySelector('script[src*="ms.js"]')) {
-                this.env.host = "UCamHost";
-                this.env.engine = "U-Cam Host Engine";
-                this.checkList.engineFound = true;
-            } 
-            // 3. بصمة فون هوست (PhoneHost)
-            else if (window.phoneHost || typeof upro === 'function') {
-                this.env.host = "PhoneHost";
-                this.env.engine = "PhoneHost Engine";
-                this.checkList.engineFound = true;
-            } 
-            // 4. بصمة جوال هوست (JawalHost)
-            else if (window.jawalHost || typeof _ma56zznz2 !== 'undefined' || pageContent.includes('x3.js')) {
-                this.env.host = "JawalHost_Universal";
-                this.env.engine = "JawalHost Engine";
-                this.checkList.engineFound = true;
-            }
+            const page = document.documentElement.innerHTML;
+            const h = window.location.hostname;
+            if (page.includes('tiger') || window.TigerConfig) this.env.host = "TigerHost_Engine";
+            else if (page.includes('phonehost') || page.includes('ucam')) this.env.host = "PhoneUCam_Engine";
+            else this.env.host = "JawalHost_Universal";
         },
 
-        adapters: {
-            // محول تايجر هوست (TigerHost) - مستخرج من xC.js
-            TigerHost: {
-                run: function() { this.applyBypass(); },
-                refresh: function() { this.applyBypass(); },
-                applyBypass: function() {
-                    // إظهار الأزرار المخفية والقوائم المنبثقة (Tiger Specific)
-                    const selectors = '.btn, .t-btn, .ppop-color-container, .clickaway-container, [style*="display: none"]';
-                    document.querySelectorAll(selectors).forEach(el => {
-                        if (el.classList.contains('u-pic')) return;
-                        el.style.setProperty('display', 'block', 'important');
-                        el.style.setProperty('visibility', 'visible', 'important');
-                    });
-
-                    // إزالة الإطارات والقيود (Tiger Frames)
-                    document.querySelectorAll('.itarr, [class^="itarr_"], .tiger-frame').forEach(el => el.remove());
-
-                    // كشف المستخدمين المخفيين (Bypass Hidden in Tiger)
-                    document.querySelectorAll('.uzr').forEach(el => {
-                        const style = window.getComputedStyle(el);
-                        if (style.maxHeight === '0px' || style.display === 'none' || el.classList.contains('th-hidden')) {
-                            el.style.setProperty('display', 'block', 'important');
-                            el.style.setProperty('max-height', 'none', 'important');
-                            el.style.setProperty('visibility', 'visible', 'important');
-                        }
-                    });
+        // [31, 33, 34] درع السيادة: مانع الطرد، الباند، وتثبيت الغرفة
+        runSovereignShield: function() {
+            window.onbeforeunload = function() { return null; }; // منع التحديث القسري
+            
+            // إبطال دوال الطرد المباشرة
+            if (typeof window.logout === 'function') window.logout = () => console.log("Nexus: Logout Blocked");
+            if (typeof window.kick === 'function') window.kick = () => console.log("Nexus: Kick Blocked");
+            
+            // اعتراض الطرد من السوكيت (Reconnect Logic)
+            const _origClose = WebSocket.prototype.close;
+            WebSocket.prototype.close = function() {
+                if (Nexus_Ghost.settings.sovereignShield) {
+                    console.log("%c[Nexus Shield] %cConnection close blocked. Anti-Kick Active.", "color:red; font-weight:bold;", "color:white;");
+                    return false;
                 }
-            },
+                return _origClose.apply(this, arguments);
+            };
+        },
 
-            // محول يو كام هوست (UCamHost)
-            UCamHost: {
-                run: function() { this.applyBypass(); },
-                refresh: function() { this.applyBypass(); },
-                applyBypass: function() {
-                    const selectors = '.btn, .control-btn, .u-admin-only';
-                    document.querySelectorAll(selectors).forEach(el => {
-                        el.style.setProperty('display', 'block', 'important');
-                        el.style.setProperty('visibility', 'visible', 'important');
-                    });
-                    document.querySelectorAll('.user-frame, [class^="itarr"]').forEach(el => el.remove());
-                }
-            },
-
-            // محول فون هوست (PhoneHost)
-            PhoneHost: {
-                run: function() { this.applyBypass(); },
-                refresh: function() { this.applyBypass(); },
-                applyBypass: function() {
-                    const selectors = '.btn, .minix, [id^="ahmed"], [id^="sultan"]';
-                    document.querySelectorAll(selectors).forEach(el => {
-                        el.style.setProperty('display', 'block', 'important');
-                        el.style.setProperty('visibility', 'visible', 'important');
-                    });
-                    document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
-                }
-            },
-
-            // محول جوال هوست الموحد (Universal JawalHost)
-            JawalHost_Universal: {
-                run: function() { this.applyUniversalBypass(); },
-                refresh: function() { this.applyUniversalBypass(); },
-                applyUniversalBypass: function() {
-                    const universalSelectors = '.btn, .minix, .mini, [id^="ahmed"], [id^="sultan"]';
-                    document.querySelectorAll(universalSelectors).forEach(el => {
-                        el.style.setProperty('display', 'block', 'important');
-                        el.style.setProperty('z-index', '999999', 'important');
-                    });
-                    document.querySelectorAll('[class^="itarr"]').forEach(el => el.remove());
-                    ['_ma56zznz2', '_m56zznz2'].forEach(m => {
-                        if (window[m] && Array.isArray(window[m])) {
-                            window[m].forEach(obj => {
-                                if (obj.cls) {
-                                    document.querySelectorAll(`.${obj.cls}`).forEach(e => {
-                                        e.classList.remove(obj.cls);
-                                        e.style.setProperty('display', 'block', 'important');
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
+        // [17, 28] تحييد الصلاحية كلياً وتخطي اللايكات
+        neutralizeRank: function() {
+            window.myPower = 999; window.myLevel = 999; window.isAdmin = true;
+            window.myLikes = 99999; // [28] تخطي اللايكات
+            
+            // كسر قفل فتح الخاص
+            if (typeof window.openw === 'function') {
+                const _origOpenw = window.openw;
+                window.openw = function(id, force) { return _origOpenw(id, true); };
             }
         },
 
-        runAdapter: function() {
-            const activeHost = this.env.host;
-            if (this.adapters[activeHost]) {
-                this.adapters[activeHost].run();
-                this.checkList.adapterLoaded = true;
+        // [6] نظام الاعتراض البرمجي العميق (Monkey Patching)
+        applyMonkeyPatching: function() {
+            const self = this;
+            if (typeof window.send === 'function') {
+                const _origSend = window.send;
+                window.send = function(cmd, data) {
+                    // [36] الدخول الصامت
+                    if (cmd === 'join' && self.settings.silentJoin) data.ghost = true;
+                    
+                    // [25, 37] معالج البصمة المتغيرة (تغيير الهاش)
+                    if (data && data.uhash && self.settings.hashSpoofer) data.uhash = self.generateFakeHash();
+                    
+                    // [28] تخطي اللايكات في الحزم
+                    if (data && data.likes !== undefined) data.likes = 99999;
+
+                    // [27] تخطي وضع التجاهل
+                    if (cmd === 'msg' && self.settings.ignoreBypass && data.to) {
+                        data.forceAlert = true; 
+                    }
+
+                    return _origSend(cmd, data);
+                };
+            }
+
+            // [30] الأرشيف الحي (Anti-Delete)
+            const preventDelete = function(id) {
+                if (!self.settings.antiDelete) return;
+                const msgEl = document.querySelector(`[id="${id}"]`) || document.getElementById(id);
+                if (msgEl) {
+                    msgEl.style.border = "2px dashed #ff3e3e";
+                    msgEl.style.backgroundColor = "rgba(255, 62, 62, 0.1)";
+                    if (!msgEl.dataset.nexusArchived) {
+                        msgEl.insertAdjacentHTML('afterbegin', '<span style="color:#ff3e3e; font-size:10px; font-weight:bold;">[محذوفة/أرشيف] </span>');
+                        msgEl.dataset.nexusArchived = "true";
+                    }
+                    return; // منع الحذف الفعلي من الـ DOM
+                }
+            };
+            if (typeof window.removeMsg === 'function') {
+                const _origRem = window.removeMsg;
+                window.removeMsg = function(id) { preventDelete(id); };
+            }
+            if (typeof window.del_msg === 'function') {
+                const _origDel = window.del_msg;
+                window.del_msg = function(id) { preventDelete(id); };
+            }
+
+            // [29] كاشف مراقبة الملف الشخصي (Profile Sniper)
+            const _origRecv = window.recv || (window.socket && window.socket.onmessage);
+            if (_origRecv) {
+                // (Logic injected inside the runAdapter for DOM-based detection)
             }
         },
 
-        renderConsoleArt: function() {
-            const style = "color: #00ffff; background: #111; padding: 5px; border-radius: 5px; font-family: monospace;";
-            console.log(`%c >>> ${this.config.name} v${this.config.version} BY ${this.config.author} <<< `, style);
-            console.log(`%c Active Engine: ${this.env.engine} `, "color: #00ff00; font-weight: bold;");
-            console.table(this.checkList);
+        generateFakeHash: () => Math.random().toString(36).substring(2, 15),
+
+        // [41, 43] بناء لوحة التحكم بالجهة العليا
+        buildControlPanel: function() {
+            // الزر العائم في أعلى اليسار بجوار رادار التزييف
+            const fab = document.createElement('div');
+            fab.innerHTML = "🛡️ Nexus";
+            fab.style = `position:fixed; top:10px; left:15px; background:linear-gradient(45deg, #000, #333); color:#00ffcc; 
+                         border:2px solid #00ffcc; border-radius:30px; padding:6px 12px; cursor:pointer; font-weight:bold; 
+                         z-index:100000; box-shadow:0 0 10px rgba(0,255,204,0.4); font-family:sans-serif; font-size:12px;`;
+            document.body.appendChild(fab);
+
+            // الحاوية الرئيسية للوحة تفتح من الأعلى
+            const panel = document.createElement('div');
+            panel.id = 'nexus-control-panel';
+            panel.style = `position:fixed; top:50px; left:15px; width:300px; background:rgba(15,15,15,0.95); border:1px solid #00ffcc; 
+                           border-radius:12px; z-index:100001; color:#fff; font-family:sans-serif; display:none; overflow:hidden;
+                           box-shadow:0 0 20px rgba(0,255,204,0.3); direction:rtl; backdrop-filter:blur(5px);`;
+            
+            panel.innerHTML = `
+                <div style="background:#00ffcc; color:#000; padding:10px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+                    <span>⚙️ تحكم السكربت (Nexus)</span>
+                    <span id="close-nexus-panel" style="cursor:pointer; font-size:16px;">✖</span>
+                </div>
+                <div style="padding:15px; max-height:400px; overflow-y:auto;">
+                    <div style="font-size:13px; color:#00ffcc; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;">إدارة المزايا (التفعيل الفوري):</div>
+                    ${this.renderToggles()}
+                    <div style="margin-top:15px; font-size:13px; color:#ffc107; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;">شيك ليست المزايا المدعومة:</div>
+                    <div id="nexus-checklist" style="font-size:11px; color:#aaa; line-height:1.6;">
+                        ✅ الرادار الذكي (جميع النسخ)<br>
+                        ✅ الدرع السيادي (مانع الطرد)<br>
+                        ✅ الأرشيف الحي (Anti-Delete)<br>
+                        ✅ القائمة الذكية (نقر يمين / تعليق)<br>
+                        ✅ كاشف البوتات والوهميين<br>
+                        ✅ الدخول الصامت وتغيير البصمة<br>
+                        ${this.env.host === 'PhoneUCam_Engine' ? '✅ رادار الكاميرات الخفية (مدعوم)' : '❌ رادار الكاميرات (خاص بيو كام/فون)'}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(panel);
+            
+            fab.onclick = () => { panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; };
+            document.getElementById('close-nexus-panel').onclick = () => { panel.style.display = 'none'; };
         },
 
-        startGlobalObserver: function() {
-            const observer = new MutationObserver(() => {
-                if (this.adapters[this.env.host]) {
-                    this.adapters[this.env.host].refresh();
+        renderToggles: function() {
+            const features = {
+                radarAlert: "الرادار المرئي للمخفيين", audioAlert: "التنبيه الصوتي للدخول", 
+                antiDelete: "الأرشيف الحي (منع الحذف)", ignoreBypass: "تخطي وضع التجاهل",
+                sovereignShield: "درع الحماية (Anti-Kick)", fakeCounter: "كاشف التزييف (البوتات)",
+                silentJoin: "الدخول الصامت للغرف", hashSpoofer: "هوية متغيرة (تخطي حظر الجهاز)",
+                profileSniper: "كاشف مراقبة بروفايلي"
+            };
+            return Object.keys(features).map(key => `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:rgba(255,255,255,0.05); padding:5px; border-radius:5px;">
+                    <label style="font-size:12px; cursor:pointer;" for="cb_${key}">${features[key]}</label>
+                    <input type="checkbox" id="cb_${key}" checked onchange="Nexus_Ghost.settings.${key} = this.checked" style="accent-color:#00ffcc;">
+                </div>
+            `).join('');
+        },
+
+        // [22] حاوية التنبيهات
+        initToastContainer: function() {
+            if (!document.getElementById("nexus-toast-container")) {
+                const container = document.createElement("div");
+                container.id = "nexus-toast-container";
+                container.style = "position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:100005; width:330px; pointer-events:none; display:flex; flex-direction:column; gap:10px;";
+                document.body.appendChild(container);
+            }
+        },
+
+        // [44] رسالة التفعيل المعربة
+        showWelcomeMessage: function() {
+            const hostName = this.config.lang.host[this.env.host] || "غير معروف";
+            const osName = this.config.lang.os[this.env.os] || this.env.os;
+            const browserName = this.config.lang.browser[this.env.browser] || this.env.browser;
+
+            this.toast(`
+                <div style="text-align:right; direction:rtl; font-family:sans-serif;">
+                    <b style="color:#00ffcc; font-size:15px;">${this.config.name}</b><br>
+                    <div style="margin-top:5px; font-size:12px; color:#ddd; line-height:1.6;">
+                        👤 المبرمج: <span style="color:#fff;">${this.config.author}</span><br>
+                        🌐 الدردشة: <span style="color:#ffc107;">${hostName}</span><br>
+                        💻 الجهاز: <span style="color:#fff;">${osName}</span><br>
+                        🌍 المتصفح: <span style="color:#fff;">${browserName}</span><br>
+                    </div>
+                    <hr style="border:0.5px solid #333; margin:8px 0;">
+                    <center style="color:#00ffcc; font-weight:bold; font-size:13px;">تـم تـفـعـيـل الـسـيـكـربـت بـنـجـاح</center>
+                </div>
+            `, 8000);
+        },
+
+        toast: function(html, duration = 6000) {
+            const container = document.getElementById("nexus-toast-container");
+            const toast = document.createElement("div");
+            toast.style = "background:rgba(15,15,15,0.95); border-right:4px solid #00ffcc; border-radius:8px; padding:15px; color:#fff; box-shadow:0 5px 15px rgba(0,0,0,0.5); pointer-events:auto; transition:all 0.5s ease; opacity:0; transform:translateY(-20px);";
+            toast.innerHTML = html;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = "1"; toast.style.transform = "translateY(0)"; }, 10);
+            setTimeout(() => { if(toast) toast.remove(); }, duration);
+        },
+
+        // [21] استخراج البيانات الحساسة (الرادار)
+        extractUserData: function(el) {
+            const name = el.getAttribute("n")?.trim() || el.querySelector('.u-topic')?.textContent || "مجهول";
+            const icon = el.querySelector('.u-ico')?.src || "";
+            const hash = el.querySelector('.uhash')?.textContent || "مخفي";
+            let pic = "pic/unknown.png";
+            const picDiv = el.querySelector('.u-pic, .tiger-pic, .v-pic');
+            if (picDiv) {
+                const bg = picDiv.style.backgroundImage || window.getComputedStyle(picDiv).backgroundImage;
+                const match = bg.match(/url\(["']?(.*?)["']?\)/);
+                if (match && match[1]) pic = match[1].startsWith('http') ? match[1] : window.location.origin + '/' + match[1].replace(/^\/+/, '');
+            }
+            return { name, pic, icon, hash };
+        },
+
+        // [18-24, 38] رادار دخول المخفيين
+        checkHiddenRadar: function() {
+            if (!this.settings.radarAlert) return;
+            const selectors = '.uzr.inroom, .tiger-user.inroom, .v-user.inroom';
+            document.querySelectorAll(selectors).forEach(el => {
+                const uidClass = [...el.classList].find(c => c.startsWith('uid'));
+                if (!uidClass) return;
+
+                const isHidden = el.querySelector('img.ustat[src*="s4.png"]') || el.getAttribute('data-nexus-spy') === '1';
+
+                if (isHidden && !alertedUsers.has(uidClass)) {
+                    alertedUsers.add(uidClass);
+                    const user = this.extractUserData(el);
+                    if (this.settings.audioAlert) audioAlert.play();
+                    
+                    this.toast(`
+                        <div style="display:flex; align-items:center; gap:12px; direction:rtl; text-align:right;">
+                            <img src="${user.pic}" style="width:50px; height:50px; border-radius:10px; border:2px solid #ff3e3e;">
+                            <div style="flex-grow:1;">
+                                <div style="display:flex; align-items:center; gap:6px; font-weight:bold; color:#ff3e3e;">
+                                    ${user.name} ${user.icon ? `<img src="${user.icon}" style="height:16px;">` : ""}
+                                </div>
+                                <div style="font-size:10px; color:#aaa; margin-top:3px; font-family:monospace;">البصمة: ${user.hash}</div>
+                                <div style="margin-top:5px; color:#00ffcc; font-size:11px; font-weight:bold;">⚠️ رادار: تم كشف دخول مخفي</div>
+                            </div>
+                        </div>
+                    `);
                 }
             });
-            observer.observe(document.body, { childList: true, subtree: true });
+
+            // [23] التنظيف الذاتي
+            for (const uid of alertedUsers) {
+                const isStillIn = document.querySelector(`.${uid}.inroom[data-nexus-spy="1"], .${uid}.inroom img.ustat[src*="s4.png"]`);
+                if (!isStillIn) alertedUsers.delete(uid);
+            }
+        },
+
+        // [39] رادار التزييف وتمركزه بجوار اللوحة في الجهة العليا
+        updateFakeCounter: function() {
+            if (!this.settings.fakeCounter) return;
+            const realCount = document.querySelectorAll('.uzr.inroom:not(.p-off)').length;
+            const webCount = parseInt(document.querySelector('.u-cnt, #u-cnt')?.textContent) || realCount;
+            const bots = webCount - realCount;
+
+            let counterDiv = document.getElementById('nexus-fake-counter');
+            if (!counterDiv) {
+                counterDiv = document.createElement('div');
+                counterDiv.id = 'nexus-fake-counter';
+                // متمركز بالجهة العليا بجوار زر اللوحة العائم
+                counterDiv.style = "position:fixed; top:10px; right:50%; transform:translateX(50%); background:rgba(0,0,0,0.8); padding:5px 15px; border:1px solid #00ffcc; border-radius:20px; color:#fff; font-size:12px; font-weight:bold; z-index:99999; display:flex; gap:10px; direction:rtl;";
+                document.body.appendChild(counterDiv);
+            }
+            counterDiv.innerHTML = `<span style="color:#00ffcc;">حقيقي: ${realCount}</span> | <span style="color:#ff3e3e;">وهمي/معلق: ${bots > 0 ? bots : 0}</span>`;
+        },
+
+        // [32] القائمة الذكية: كليك يمين للكمبيوتر + تعليق للهواتف
+        initSmartMenu: function(el, cleanId) {
+            if (el._nexusMenuBound) return;
+
+            const self = this;
+            const showMenu = (clientX, clientY) => {
+                const existing = document.getElementById('nexus-smart-menu');
+                if (existing) existing.remove();
+
+                const data = self.extractUserData(el);
+                const statusTxt = el.querySelector('.u-msg')?.textContent || "لا توجد حالة";
+
+                const menu = document.createElement('div');
+                menu.id = 'nexus-smart-menu';
+                
+                // التأكد من عدم خروج القائمة عن حدود الشاشة
+                const x = Math.min(clientX, window.innerWidth - 150);
+                const y = Math.min(clientY, window.innerHeight - 220);
+
+                menu.style = `position:fixed; top:${y}px; left:${x}px; background:#1a1a1a; border:1px solid #00ffcc; border-radius:8px; padding:5px; z-index:100010; color:#fff; font-size:12px; min-width:140px; direction:rtl; font-family:sans-serif; box-shadow:0 4px 10px rgba(0,0,0,0.5);`;
+                
+                menu.innerHTML = `
+                    <div style="border-bottom:1px solid #333; padding:5px; text-align:center; font-weight:bold; color:#00ffcc; margin-bottom:5px;">إجراءات إدارية</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; hover:background:#333;" onclick="navigator.clipboard.writeText('${data.name}')">📋 نسخ الاسم</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onclick="window.open('${data.pic}')">🖼️ حفظ الصورة</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer;" onclick="navigator.clipboard.writeText('${statusTxt}')">📝 نسخ الحالة</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ffc107;" onclick="if(typeof kickw==='function')kickw('${cleanId}')">🚪 طرد من الروم</div>
+                    <div class="n-item" style="padding:8px; cursor:pointer; color:#ff3e3e;" onclick="if(typeof banw==='function')banw('${cleanId}')">🚫 باند نهائي</div>
+                `;
+                document.body.appendChild(menu);
+                
+                // إغلاق عند النقر في أي مكان
+                setTimeout(() => { 
+                    document.addEventListener('click', function closeMenu() {
+                        const m = document.getElementById('nexus-smart-menu');
+                        if (m) m.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }); 
+                }, 100);
+            };
+
+            // 1- أجهزة الكمبيوتر: تفعيل بالقائمة المنسدلة للماوس (Right-Click)
+            el.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showMenu(e.clientX, e.clientY);
+            });
+
+            // 2- الهواتف الذكية: تفعيل عبر التعليق والضغط المطول (Long Press)
+            let pressTimer;
+            el.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    // منع السلوك الافتراضي للهاتف عند التعليق لإظهار قائمتنا الذكية
+                    e.preventDefault(); 
+                    const touch = e.touches[0];
+                    showMenu(touch.clientX, touch.clientY);
+                }, 600); // 600 ملي ثانية (الزمن المثالي للتعليق)
+            }, { passive: false });
+
+            el.addEventListener('touchend', () => clearTimeout(pressTimer));
+            el.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+            el._nexusMenuBound = true;
+        },
+
+        // [1-16, 26, 35] المحرك المركزي للإصلاح، الأزرار، والوصول
+        runAdapter: function() {
+            // [1, 2, 12] إظهار الأزرار وفك الإطارات
+            const host = this.env.host;
+            if (host === "TigerHost_Engine") {
+                document.querySelectorAll('.btn, .tiger-btn, .u-admin-btn').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
+                document.querySelectorAll('[class^="itarr"], .tiger-frame').forEach(el => el.remove());
+                this.repairCore(".tiger-user, .uzr", "#ffc107");
+            } else if (host === "PhoneUCam_Engine") {
+                document.querySelectorAll('.btn, .u-admin-btn, .v-cam-btn, .minix').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
+                document.querySelectorAll('.u-frame, .v-overlay').forEach(el => el.remove());
+                this.repairCore(".v-user, .uzr", "#ff5722");
+                
+                // [35] كاشف الكاميرات المخفية (Phone/UCam)
+                if (this.settings.cameraSpy) {
+                    document.querySelectorAll('.v-cam-active, i.fa-video-camera').forEach(cam => {
+                        const userEl = cam.closest('.uzr, .v-user');
+                        if (userEl && !userEl._nexusCamAlert) {
+                            const name = userEl.getAttribute('n');
+                            this.toast(`🔔 رادار الكاميرا: <b style="color:#00ffcc">${name}</b> يقوم بالبث/المشاهدة الآن.`, 4000);
+                            userEl._nexusCamAlert = true;
+                        }
+                    });
+                }
+            } else { // JawalHost
+                document.querySelectorAll('.btn, .minix, [id^="ahmed"], [id^="sultan"]').forEach(el => el.style.setProperty('display', 'inline-block', 'important'));
+                document.querySelectorAll('[class^="itarr"], .nonot, .ubnr').forEach(el => el.remove());
+                this.repairCore(".uzr", "#4caf50");
+            }
+
+            // [29] كاشف تصفح الملف الشخصي (Profile Sniper) عبر مراقبة DOM للصناديق المفتوحة لك
+            if (this.settings.profileSniper) {
+                const myName = window.myN || "";
+                document.querySelectorAll('.log-msg').forEach(msg => {
+                    if (msg.textContent.includes('فتح ملف') && msg.textContent.includes(myName) && !msg._nexusSniper) {
+                        this.toast(`👁️ كاشف المراقبة: شخص ما يتصفح بروفايلك الآن!`, 5000);
+                        msg._nexusSniper = true;
+                    }
+                });
+            }
+        },
+
+        repairCore: function(targetSelector, themeColor) {
+            document.querySelectorAll(targetSelector).forEach(el => {
+                const cleanId = (el.getAttribute('id') || el.getAttribute('n') || "").replace(/\D/g, '');
+
+                // [11, 7, 4, 5] التصفير والإظهار القسري
+                const style = window.getComputedStyle(el);
+                if (style.fontSize === '0px' || style.display === 'none') {
+                    el.style.setProperty('display', 'block', 'important');
+                    el.style.setProperty('font-size', 'inherit', 'important');
+                    el.style.setProperty('height', 'auto', 'important');
+                    el.setAttribute('data-nexus-spy', '1');
+                }
+
+                // [16] القابلية للضغط للبروفايل والخاص
+                if ((el.getAttribute('data-nexus-spy') === '1' || el.querySelector('img.ustat[src*="s4.png"]')) && !el._nexusClickBound) {
+                    el.style.cursor = "pointer";
+                    el.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (typeof upro === "function") upro(cleanId);
+                        if (typeof openw === "function") setTimeout(() => openw(cleanId, true), 100);
+                    });
+                    el._nexusClickBound = true;
+                }
+
+                // [32] تفعيل القائمة الذكية لكل مستخدم (بالتعديل الجديد للهواتف والكمبيوتر)
+                this.initSmartMenu(el, cleanId);
+
+                // [13-15] تنظيف البصمات الإدارية وإبطال التزيين
+                const adminCls = ['__rv_me', 'ahmed', 'sultan', 'tiger-admin', 'admin-hidden', 'custom-alaw'];
+                adminCls.forEach(c => { if (el.classList.contains(c)) el.classList.remove(c); });
+                
+                // [14] كشف نص التمويه
+                const topic = el.querySelector('.u-topic');
+                if (topic && (window.getComputedStyle(topic).color === window.getComputedStyle(topic).backgroundColor)) {
+                    topic.style.setProperty('color', themeColor, 'important');
+                }
+
+                // [9, 10] استعادة البيانات والصورة
+                const n = el.getAttribute('n'), p = el.getAttribute('data-pic');
+                const pic = el.querySelector('.u-pic');
+                if (topic && n && topic.textContent.trim() === "") topic.textContent = n;
+                if (pic && p && !pic.style.backgroundImage) pic.style.backgroundImage = `url("${p}")`;
+            });
+            this.checkHiddenRadar();
+        },
+
+        // [40, 42] المراقبة المستمرة المحسنة (MutationObserver مع تقليل الضغط Throttling)
+        startGlobalObserver: function() {
+            let timeout = null;
+            new MutationObserver(() => {
+                // منع التداخل إذا كنت تكتب في مربع البحث
+                const searchBox = document.getElementById('usearch');
+                if (searchBox && searchBox.value.trim().length > 0) return;
+
+                // [42] تحسين الأداء عبر تأخير التنفيذ (Debounce) لتقليل استهلاك المعالج
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    this.runAdapter();
+                    this.updateFakeCounter(); // [39] تحديث العداد
+                }, 100); 
+
+            }).observe(document.body, { childList: true, subtree: true });
         }
     };
 
+    // [Execute Nexus Sovereign Ultimate]
     Nexus_Ghost.init();
 })();
